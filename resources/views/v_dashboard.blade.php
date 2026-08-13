@@ -214,17 +214,24 @@
             };
             $pct = fn ($v) => $v !== null ? number_format($v, 2, ',', '.') . '%' : '–';
             $rb = fn ($v) => number_format($v / 1000, 0, ',', '.'); // ke ribuan (Rp.000)
+            // Cell diwarnai merah jika nilainya di bawah acuan Ditjen SDA (input manual).
+            $cellCls = fn ($v, $acuan) => ($v !== null && $acuan !== null && $v < $acuan) ? 'table-danger' : '';
         @endphp
         <div class="card mt-3">
-            <div class="card-header">
+            <div class="card-header position-relative">
+                <button type="button" id="btnUnduhPpkTable" class="btn btn-sm btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-3">
+                    <i class="bi bi-camera"></i> Unduh Gambar
+                </button>
                 <h3 class="card-title mb-0"><i class="bi bi-trophy me-1"></i> Progres per PPK &amp; Peringkat</h3>
             </div>
             <div class="card-body p-0">
                 <style>
                     #ppkProgresTable th,
                     #ppkProgresTable td { vertical-align: middle !important; }
+                    /* Hilangkan garis tengah yang menembus sel rowspan (No., Satker/PPK, Pagu, Realisasi, Rank) di header. */
+                    #ppkProgresTable thead tr:first-child th[rowspan] { border-bottom: 0; }
                 </style>
-                <div class="table-responsive">
+                <div class="table-responsive" id="ppkProgresCapture">
                     <table id="ppkProgresTable" class="table table-bordered mb-0 text-nowrap" style="min-width:820px">
                         <thead class="table-light text-center">
                             <tr>
@@ -241,6 +248,32 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {{-- Baris acuan: Ditjen SDA (input manual) --}}
+                            <tr class="table-primary fw-bold">
+                                <td>–</td>
+                                <td>Ditjen SDA</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>
+                                    {{ $pct($ditjen['keu']) }}
+                                    <button type="button" class="btn btn-sm btn-link p-0 ms-1 align-baseline"
+                                            data-bs-toggle="modal" data-bs-target="#modalDitjen" title="Ubah nilai Ditjen SDA">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                                <td>{{ $pct($ditjen['fis']) }}</td>
+                                <td>–</td>
+                            </tr>
+                            {{-- Baris acuan: total keseluruhan BWS Sulawesi IV Kendari --}}
+                            <tr class="table-secondary fw-bold">
+                                <td>–</td>
+                                <td>BWS Sulawesi IV Kendari</td>
+                                <td>{{ $rb($ppkProgres['total']['pagu']) }}</td>
+                                <td>{{ $rb($ppkProgres['total']['realisasi']) }}</td>
+                                <td class="{{ $cellCls($ppkProgres['total']['keu'], $ditjen['keu']) }}">{{ $pct($ppkProgres['total']['keu']) }}</td>
+                                <td class="{{ $cellCls($ppkProgres['total']['fis'], $ditjen['fis']) }}">{{ $pct($ppkProgres['total']['fis']) }}</td>
+                                <td>–</td>
+                            </tr>
                             @forelse ($ppkProgres['satkers'] as $si => $s)
                                 {{-- Baris satker --}}
                                 <tr class="table-success fw-bold">
@@ -248,8 +281,8 @@
                                     <td>{{ $s['nama'] }} <span class="badge text-bg-secondary">{{ $s['singkatan'] }}</span></td>
                                     <td>{{ $rb($s['pagu']) }}</td>
                                     <td>{{ $rb($s['realisasi']) }}</td>
-                                    <td>{{ $pct($s['keu']) }}</td>
-                                    <td>{{ $pct($s['fis']) }}</td>
+                                    <td class="{{ $cellCls($s['keu'], $ditjen['keu']) }}">{{ $pct($s['keu']) }}</td>
+                                    <td class="{{ $cellCls($s['fis'], $ditjen['fis']) }}">{{ $pct($s['fis']) }}</td>
                                     <td>{!! $rankBadge($s['rank']) !!}</td>
                                 </tr>
                                 {{-- Baris PPK --}}
@@ -264,8 +297,8 @@
                                         </td>
                                         <td>{{ $rb($p['pagu']) }}</td>
                                         <td>{{ $rb($p['realisasi']) }}</td>
-                                        <td>{{ $pct($p['keu']) }}</td>
-                                        <td>{{ $pct($p['fis']) }}</td>
+                                        <td class="{{ $cellCls($p['keu'], $ditjen['keu']) }}">{{ $pct($p['keu']) }}</td>
+                                        <td class="{{ $cellCls($p['fis'], $ditjen['fis']) }}">{{ $pct($p['fis']) }}</td>
                                         <td>{!! $rankBadge($p['rank']) !!}</td>
                                     </tr>
                                 @endforeach
@@ -275,36 +308,57 @@
                                 </tr>
                             @endforelse
                         </tbody>
-                        @if (count($ppkProgres['satkers']))
-                            <tfoot>
-                                <tr class="fw-bold border-top">
-                                    <td colspan="2" class="text-end">TOTAL</td>
-                                    <td>{{ $rb($ppkProgres['total']['pagu']) }}</td>
-                                    <td>{{ $rb($ppkProgres['total']['realisasi']) }}</td>
-                                    <td>{{ $pct($ppkProgres['total']['keu']) }}</td>
-                                    <td>{{ $pct($ppkProgres['total']['fis']) }}</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        @endif
                     </table>
+                    <div class="text-center fw-bold border-top py-2 bg-white">
+                        Status : {{ $statusJam['tanggal'] }} ; {{ $statusJam['jam'] }} WIB
+                    </div>
                 </div>
             </div>
             <div class="card-footer text-secondary small">
-                Peringkat (Rank) dihitung berdasarkan <strong>Progres Keuangan</strong> tertinggi &mdash; baris satker diperingkat antar 5 satker, baris PPK diperingkat antar seluruh PPK.
+                Peringkat (Rank) dihitung berdasarkan <strong>Progres Keuangan</strong> tertinggi &mdash; baris satker diperingkat antar 5 satker, baris PPK diperingkat antar seluruh PPK. Cell berwarna merah menandakan progres di bawah acuan Ditjen SDA.
+            </div>
+        </div>
+
+        {{-- Modal Ubah Progres Ditjen SDA --}}
+        <div class="modal fade" id="modalDitjen" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <form method="POST" action="{{ route('ditjen.update') }}" class="modal-content">
+                    @csrf
+                    <div class="modal-header text-bg-primary">
+                        <h5 class="modal-title">Ubah Progres Ditjen SDA</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Progres Keuangan (Keu %)</label>
+                            <input type="number" step="0.01" min="0" max="100" name="keu" class="form-control"
+                                   value="{{ old('keu', $ditjen['keu']) }}">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Realisasi Fisik (Fis %)</label>
+                            <input type="number" step="0.01" min="0" max="100" name="fis" class="form-control"
+                                   value="{{ old('fis', $ditjen['fis']) }}">
+                        </div>
+                        <div class="form-text">Nilai ini diinput manual sebagai acuan pembanding nasional Ditjen SDA. Kosongkan untuk menghapus nilai.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan</button>
+                    </div>
+                </form>
             </div>
         </div>
 
         {{-- Deteksi paket yang belum dipetakan ke PPK (per satker) --}}
         <div class="card mt-3">
-            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="card-header position-relative">
+                <span class="text-secondary small position-absolute top-50 end-0 translate-middle-y me-3">Deteksi otomatis paket tanpa PPK, dikelompokkan per satker.</span>
                 <h3 class="card-title mb-0">
                     <i class="bi bi-exclamation-triangle me-1"></i> Paket Belum Dipetakan ke PPK
                     @if ($unmapped['total'] > 0)
                         <span class="badge text-bg-danger ms-1">{{ number_format($unmapped['total'], 0, ',', '.') }}</span>
                     @endif
                 </h3>
-                <span class="text-secondary small align-items-end">Deteksi otomatis paket tanpa PPK, dikelompokkan per satker.</span>
             </div>
             <div class="card-body @if ($unmapped['total'] === 0) @else p-0 @endif">
                 @if ($unmapped['total'] === 0)
@@ -487,6 +541,46 @@
     });
 </script>
 @endunless
+
+<script>
+    document.getElementById('btnUnduhPpkTable').addEventListener('click', function (ev) {
+        const btn   = ev.currentTarget;
+        const table = document.getElementById('ppkProgresCapture');
+
+        btn.disabled = true;
+        html2canvas(table, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            // html2canvas tidak menangani sel <th rowspan> dengan benar (tetap
+            // menggambar garis batas antar baris header menembus sel yang
+            // menyatu). Ratakan header jadi satu baris khusus untuk hasil
+            // capture agar garis itu tidak muncul; tampilan asli di halaman
+            // tidak berubah karena ini hanya mengubah dokumen kloningan.
+            onclone: function (clonedDoc) {
+                const thead = clonedDoc.querySelector('#ppkProgresTable thead');
+                if (thead) {
+                    thead.innerHTML =
+                        '<tr>' +
+                        '<th style="width:44px">No.</th>' +
+                        '<th>Satker / PPK</th>' +
+                        '<th>Pagu<br><small>(Rp.000)</small></th>' +
+                        '<th>Realisasi<br><small>(Rp.000)</small></th>' +
+                        '<th style="width:90px">Keu (%)</th>' +
+                        '<th style="width:90px">Fis (%)</th>' +
+                        '<th style="width:70px">Rank</th>' +
+                        '</tr>';
+                }
+            },
+        }).then(function (canvas) {
+            const link = document.createElement('a');
+            link.download = 'progres-ppk-peringkat.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).finally(function () {
+            btn.disabled = false;
+        });
+    });
+</script>
 @endpush
 
 @endsection

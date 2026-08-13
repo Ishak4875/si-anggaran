@@ -29,14 +29,14 @@
 <div class="app-content">
     <div class="container-fluid">
 
-        {{-- Ringkasan satker --}}
+        {{-- Ringkasan satker (berubah mengikuti filter PPK pada tabel di bawah) --}}
         <div class="row g-3 mb-2">
             <div class="col-6 col-md-3">
                 <div class="info-box shadow-sm">
                     <span class="info-box-icon text-bg-primary"><i class="bi bi-list-check"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Jumlah Paket</span>
-                        <span class="info-box-number">{{ number_format($ringkas['jml_paket'], 0, ',', '.') }}</span>
+                        <span class="info-box-number" id="ringkasJumlah">{{ number_format($ringkas['jml_paket'], 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -45,7 +45,7 @@
                     <span class="info-box-icon text-bg-success"><i class="bi bi-cash-stack"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Total Pagu</span>
-                        <span class="info-box-number">Rp {{ number_format($ringkas['total_pagu'], 0, ',', '.') }}</span>
+                        <span class="info-box-number" id="ringkasPagu">Rp {{ number_format($ringkas['total_pagu'], 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -54,7 +54,7 @@
                     <span class="info-box-icon text-bg-info"><i class="bi bi-graph-up"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Rata-rata Progres Keuangan</span>
-                        <span class="info-box-number">{{ $ringkas['avg_keu'] !== null ? number_format($ringkas['avg_keu'], 2, ',', '.') . '%' : '–' }}</span>
+                        <span class="info-box-number" id="ringkasKeu">{{ $ringkas['avg_keu'] !== null ? number_format($ringkas['avg_keu'], 2, ',', '.') . '%' : '–' }}</span>
                     </div>
                 </div>
             </div>
@@ -63,7 +63,7 @@
                     <span class="info-box-icon text-bg-warning"><i class="bi bi-bar-chart"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Rata-rata Realisasi Fisik</span>
-                        <span class="info-box-number">{{ $ringkas['avg_fisik'] !== null ? number_format($ringkas['avg_fisik'], 2, ',', '.') . '%' : '–' }}</span>
+                        <span class="info-box-number" id="ringkasFisik">{{ $ringkas['avg_fisik'] !== null ? number_format($ringkas['avg_fisik'], 2, ',', '.') . '%' : '–' }}</span>
                     </div>
                 </div>
             </div>
@@ -73,13 +73,22 @@
         <div class="card">
             <div class="card-header d-flex flex-wrap align-items-center gap-2">
                 <h3 class="card-title mb-0"><i class="bi bi-table me-1"></i> Daftar Paket Kegiatan</h3>
-                <div class="input-group input-group-sm ms-auto" style="max-width:300px">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" id="cariPaket" class="form-control"
-                           placeholder="Cari nama / kode paket..." autocomplete="off">
-                    <button type="button" id="cariReset" class="btn btn-outline-secondary" title="Bersihkan">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
+                <div class="d-flex flex-nowrap gap-2 ms-auto">
+                    <select id="filterPpk" class="form-select form-select-sm" style="max-width:260px">
+                        <option value="">Semua PPK</option>
+                        <option value="unassigned">— Belum ditetapkan —</option>
+                        @foreach ($ppkOptions as $opt)
+                            <option value="{{ $opt->id }}">{{ $opt->jabatan }}@if ($opt->nama) — {{ $opt->nama }}@endif</option>
+                        @endforeach
+                    </select>
+                    <div class="input-group input-group-sm" style="max-width:300px">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="cariPaket" class="form-control"
+                               placeholder="Cari nama / kode paket..." autocomplete="off">
+                        <button type="button" id="cariReset" class="btn btn-outline-secondary" title="Bersihkan">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -100,7 +109,12 @@
                         </thead>
                         <tbody id="paketBody">
                             @forelse ($packets as $i => $p)
-                                <tr class="paket-row" data-cari="{{ Str::lower($p->kdpaket . ' ' . $p->nmpaket) }}">
+                                <tr class="paket-row"
+                                    data-cari="{{ Str::lower($p->kdpaket . ' ' . $p->nmpaket) }}"
+                                    data-ppk="{{ $p->ppk_id ?? '' }}"
+                                    data-pagu="{{ (float) $p->pagu }}"
+                                    data-realisasi="{{ (float) $p->realisasi }}"
+                                    data-fisik="{{ $p->real_fisik !== null ? $p->real_fisik : '' }}">
                                     <td class="nomor">{{ $i + 1 }}</td>
                                     <td><code>{{ $p->kdpaket }}</code></td>
                                     <td style="white-space:normal">{{ $p->nmpaket }}</td>
@@ -197,31 +211,93 @@
 @push('scripts')
 <script>
     (function () {
-        const input   = document.getElementById('cariPaket');
-        const reset   = document.getElementById('cariReset');
-        const rows    = Array.from(document.querySelectorAll('#paketBody .paket-row'));
-        const kosong  = document.getElementById('barisKosong');
-        const jmlSpan = document.getElementById('jmlTampil');
+        const input     = document.getElementById('cariPaket');
+        const reset     = document.getElementById('cariReset');
+        const ppkSelect = document.getElementById('filterPpk');
+        const rows      = Array.from(document.querySelectorAll('#paketBody .paket-row'));
+        const kosong    = document.getElementById('barisKosong');
+        const jmlSpan   = document.getElementById('jmlTampil');
+
+        const ringkasJumlah = document.getElementById('ringkasJumlah');
+        const ringkasPagu   = document.getElementById('ringkasPagu');
+        const ringkasKeu    = document.getElementById('ringkasKeu');
+        const ringkasFisik  = document.getElementById('ringkasFisik');
+
+        // Total satker (seluruh paket, tanpa filter) untuk dikembalikan saat filter PPK dikosongkan.
+        const satkerTotal = rows.reduce((acc, row) => {
+            const pagu = parseFloat(row.dataset.pagu) || 0;
+            const real = parseFloat(row.dataset.realisasi) || 0;
+            acc.jumlah++;
+            acc.totalPagu += pagu;
+            acc.totalReal += real;
+            if (row.dataset.fisik !== '') {
+                acc.fisikNum += parseFloat(row.dataset.fisik) * pagu;
+                acc.fisikDen += pagu;
+            }
+            return acc;
+        }, { jumlah: 0, totalPagu: 0, totalReal: 0, fisikNum: 0, fisikDen: 0 });
+
+        function fmtPersen(n) {
+            return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+        }
+
+        function fmtRupiah(n) {
+            return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+        }
 
         function filter() {
-            const q = input.value.trim().toLowerCase();
+            const q      = input.value.trim().toLowerCase();
+            const ppkVal = ppkSelect.value;
             let tampil = 0;
 
+            let totalPagu = 0, totalReal = 0, fisikNum = 0, fisikDen = 0;
+
             rows.forEach((row) => {
-                const cocok = q === '' || row.dataset.cari.includes(q);
+                const cocokTeks = q === '' || row.dataset.cari.includes(q);
+                let cocokPpk = true;
+                if (ppkVal === 'unassigned') {
+                    cocokPpk = row.dataset.ppk === '';
+                } else if (ppkVal !== '') {
+                    cocokPpk = row.dataset.ppk === ppkVal;
+                }
+                const cocok = cocokTeks && cocokPpk;
+
                 row.classList.toggle('d-none', !cocok);
                 if (cocok) {
                     tampil++;
                     // perbarui nomor urut mengikuti hasil filter
                     row.querySelector('.nomor').textContent = tampil;
+
+                    const pagu  = parseFloat(row.dataset.pagu) || 0;
+                    const real  = parseFloat(row.dataset.realisasi) || 0;
+                    totalPagu  += pagu;
+                    totalReal  += real;
+                    if (row.dataset.fisik !== '') {
+                        fisikNum += parseFloat(row.dataset.fisik) * pagu;
+                        fisikDen += pagu;
+                    }
                 }
             });
 
             kosong.classList.toggle('d-none', tampil !== 0);
             if (jmlSpan) jmlSpan.textContent = tampil;
+
+            // Kotak ringkasan di atas: data satker jika belum difilter, data per PPK jika sudah.
+            if (ppkVal === '') {
+                ringkasJumlah.textContent = satkerTotal.jumlah.toLocaleString('id-ID');
+                ringkasPagu.textContent   = fmtRupiah(satkerTotal.totalPagu);
+                ringkasKeu.textContent    = satkerTotal.totalPagu > 0 ? fmtPersen(satkerTotal.totalReal / satkerTotal.totalPagu * 100) : '–';
+                ringkasFisik.textContent  = satkerTotal.fisikDen > 0 ? fmtPersen(satkerTotal.fisikNum / satkerTotal.fisikDen) : '–';
+            } else {
+                ringkasJumlah.textContent = tampil.toLocaleString('id-ID');
+                ringkasPagu.textContent   = fmtRupiah(totalPagu);
+                ringkasKeu.textContent    = totalPagu > 0 ? fmtPersen(totalReal / totalPagu * 100) : '–';
+                ringkasFisik.textContent  = fisikDen > 0 ? fmtPersen(fisikNum / fisikDen) : '–';
+            }
         }
 
         input.addEventListener('input', filter);
+        ppkSelect.addEventListener('change', filter);
         reset.addEventListener('click', () => { input.value = ''; filter(); input.focus(); });
     })();
 

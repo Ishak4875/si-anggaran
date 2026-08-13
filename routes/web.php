@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::post('/sync', [DashboardController::class, 'sync'])->name('packets.sync');
+Route::post('/ditjen-progres', [DashboardController::class, 'updateDitjenProgres'])->name('ditjen.update');
 Route::get('/satker/{slug}', [DashboardController::class, 'satker'])->name('satker.show');
 Route::post('/satker/{slug}/ppk', [DashboardController::class, 'assignPpk'])->name('satker.assignPpk');
 

@@ -4,7 +4,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>SI-Anggaran | @yield('title', 'Dashboard')</title>
+    <title>PROGRESSO | @yield('title', 'Dashboard')</title>
 
     <!--begin::Accessibility Meta Tags-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
@@ -156,7 +156,7 @@
                         alt="Logo BWS Sulawesi IV" class="brand-image opacity-75 shadow" />
                     <!--end::Brand Image-->
                     <!--begin::Brand Text-->
-                    <span class="brand-text fw-light">SI-ANGGARAN</span>
+                    <span class="brand-text fw-light">PROGRESSO</span>
                     <!--end::Brand Text-->
                 </a>
                 <!--end::Brand Link-->
@@ -236,7 +236,7 @@
 
             if (
                 sidebarWrapper &&
-                OverlayScrollbarsGlobal ? .OverlayScrollbars !== undefined &&
+                OverlayScrollbarsGlobal?.OverlayScrollbars !== undefined &&
                 !isMobile
             ) {
                 OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
@@ -322,6 +322,9 @@
     <!-- ApexCharts (tersedia untuk grafik kustom pada halaman) -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
         integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8=" crossorigin="anonymous"></script>
+
+    <!-- html2canvas (untuk fitur unduh tabel sebagai gambar) -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" crossorigin="anonymous"></script>
 
     @stack("scripts")
     <!--end::Script-->

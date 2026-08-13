@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DitjenProgres;
 use App\Models\Packet;
 use App\Services\PacketSyncService;
 use App\Support\Satker;
@@ -72,6 +73,8 @@ class DashboardController extends Controller
             'avg_real_fisik'       => $grandFisikDen > 0 ? $grandFisikNum / $grandFisikDen : null,
         ];
 
+        $ditjen = DitjenProgres::current();
+
         return view('v_dashboard', [
             'rows'        => $rows,
             'totals'      => $totals,
@@ -79,7 +82,61 @@ class DashboardController extends Controller
             'paguChart'   => $this->buildPaguChart(),
             'ppkProgres'  => $this->buildPpkProgres(),
             'unmapped'    => $this->buildUnmappedPpk(),
+            'ditjen'      => ['keu' => $ditjen->keu, 'fis' => $ditjen->fis],
+            'statusJam'   => $this->buildStatusJam(),
         ]);
+    }
+
+    /**
+     * Status "checkpoint" laporan (08:00 / 12:00 / 16:00 WIB) berdasarkan jam
+     * saat ini, mengikuti pola pelaporan 4-jaman: checkpoint dianggap berlaku
+     * mulai 1 jam setelah waktunya sampai checkpoint berikutnya.
+     */
+    private function buildStatusJam(): array
+    {
+        $now = now('Asia/Makassar'); // "jam di laptop" — konsisten dgn konversi WITA yg dipakai di aplikasi ini
+        $menit = $now->hour * 60 + $now->minute;
+
+        if ($menit >= 9 * 60 && $menit <= 13 * 60) {
+            $checkpoint = '08:00';
+            $tanggal = $now->copy();
+        } elseif ($menit >= 13 * 60 + 1 && $menit <= 17 * 60) {
+            $checkpoint = '12:00';
+            $tanggal = $now->copy();
+        } else {
+            $checkpoint = '16:00';
+            // Dini hari (00:00–08:59): checkpoint 16:00 sebenarnya terjadi kemarin.
+            $tanggal = $menit < 9 * 60 ? $now->copy()->subDay() : $now->copy();
+        }
+
+        return [
+            'tanggal' => $tanggal->locale('id')->translatedFormat('d F Y'),
+            'jam'     => $checkpoint,
+        ];
+    }
+
+    /**
+     * Perbarui nilai progres Ditjen SDA (input manual, dipakai sebagai acuan
+     * pembanding pada tabel "Progres per PPK & Peringkat").
+     */
+    public function updateDitjenProgres(Request $request): RedirectResponse
+    {
+        // Input kosong dari form dikirim sebagai string kosong, bukan null.
+        $request->merge([
+            'keu' => $request->input('keu') === '' ? null : $request->input('keu'),
+            'fis' => $request->input('fis') === '' ? null : $request->input('fis'),
+        ]);
+
+        $data = $request->validate([
+            'keu' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'fis' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        DitjenProgres::current()->update($data);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('status', 'Progres Ditjen SDA berhasil diperbarui.');
     }
 
     /**
