@@ -12,11 +12,19 @@ class PacketsRegular extends Model
 
     public function packets()
     {
-        return Packet::where('satker_group', $this->satker)
-            ->where(function ($query) {
-                $query->where('nmpaket', 'LIKE', '%' . $this->nama_paket . '%')
-                    ->orWhere('nmpaket', 'LIKE', '%' . mb_substr($this->nama_paket, 0, 20) . '%');
-            });
+        $query = Packet::where('satker_group', $this->satker);
+
+        // Priority 1: Match by exact kode_paket
+        if (strpos($this->kode_paket, '.') !== false) {
+            // kode_paket from API (has dots)
+            return $query->where('kdpaket', $this->kode_paket);
+        }
+
+        // Priority 2: Fuzzy match by package name (for generated codes like OPA-001)
+        return $query->where(function ($q) {
+            $q->where('nmpaket', 'LIKE', '%' . $this->nama_paket . '%')
+              ->orWhere('nmpaket', 'LIKE', '%' . mb_substr($this->nama_paket, 0, 25) . '%');
+        });
     }
 
     public function getRelatedPackets()
