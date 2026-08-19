@@ -52,4 +52,26 @@ class Satker
     {
         return static::find($slug)['singkatan'] ?? 'Lainnya';
     }
+
+    /**
+     * Daftar semua slug satker.
+     */
+    public static function getSlugs(): array
+    {
+        return array_keys(static::groups());
+    }
+
+    /**
+     * Map slug => nama lengkap.
+     */
+    public static function getNamesMap(): array
+    {
+        $map = [];
+        foreach (static::groups() as $slug => $group) {
+            $map[$slug] = $group['nama'];
+        }
+        return $map;
+    }
+
+    const SLUGS = ['balai', 'op', 'pjpa', 'pjsa', 'bendungan'];
 }

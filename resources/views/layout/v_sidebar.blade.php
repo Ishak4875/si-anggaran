@@ -18,6 +18,15 @@
                 </a>
             </li>
 
+            {{-- Daftar Paket Reguler --}}
+            <li class="nav-item">
+                <a href="{{ route('packets-reguler.index') }}"
+                   class="nav-link {{ request()->routeIs('packets-reguler.*') ? 'active' : '' }}">
+                    <i class="nav-icon bi bi-list-check"></i>
+                    <p>Daftar Paket Reguler</p>
+                </a>
+            </li>
+
             {{-- Paket Kegiatan per Satker --}}
             <li class="nav-item {{ request()->routeIs('satker.show') ? 'menu-open' : '' }}">
                 <a href="#" class="nav-link {{ request()->routeIs('satker.show') ? 'active' : '' }}">

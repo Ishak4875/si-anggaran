@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaguController;
+use App\Http\Controllers\PacketsRegularController;
 use App\Http\Controllers\PpkController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/ppk', [PpkController::class, 'store'])->name('ppk.store');
     Route::put('/ppk/{ppk}', [PpkController::class, 'update'])->name('ppk.update');
     Route::delete('/ppk/{ppk}', [PpkController::class, 'destroy'])->name('ppk.destroy');
+
+    Route::get('/packets-reguler', [PacketsRegularController::class, 'index'])->name('packets-reguler.index');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');

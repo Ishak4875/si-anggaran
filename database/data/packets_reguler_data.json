@@ -1,0 +1,182 @@
+[
+  {
+    "no": 1,
+    "ppk_name": "Pak Wagiyo",
+    "nama_paket": "PPK Perc. - Desain Rehabilitasi Jaringan Irigasi DI. Mowila Kab. Konawe Selatan",
+    "satker": "balai"
+  },
+  {
+    "no": 2,
+    "ppk_name": "Pak Wagiyo",
+    "nama_paket": "PPK Perc. - Pemutakhiran Pemetaan Daerah Irigasi Kewenangan Pusat di Provinsi Sulawesi Tenggara",
+    "satker": "balai"
+  },
+  {
+    "no": 3,
+    "ppk_name": "Pak Rano",
+    "nama_paket": "PPK Perc. - Penyusunan Dokumen Kesiapan Peningkatan Jaringan Irigasi DI. Watumokala Kab. Konawe Selatan",
+    "satker": "balai"
+  },
+  {
+    "no": 4,
+    "ppk_name": "Pak Rano",
+    "nama_paket": "PPK Perc. - Penyusunan Dokumen Lingkungan Kegiatan Pembangunan Pengaman Pantai Kawasan Anaiwoi - Kampung Bajo Kab. Kolaka",
+    "satker": "balai"
+  },
+  {
+    "no": 5,
+    "ppk_name": "Pak Arif",
+    "nama_paket": "PPK Perc. - Desain Rehabilitasi Air Baku Tolihe Kab. Konawe Selatan",
+    "satker": "balai"
+  },
+  {
+    "no": 1,
+    "ppk_name": "Pak Wagiyo",
+    "nama_paket": "PPK IRWA 1 - Pembangunan Jaringan Irigasi DI Laiba Kab. Muna",
+    "satker": "op"
+  },
+  {
+    "no": 2,
+    "ppk_name": "Pak Wagiyo",
+    "nama_paket": "PPK IRWA 1 - Supervisi Konstruksi Pembangunan Jaringan Irigasi DI Laiba Kab. Muna",
+    "satker": "op"
+  },
+  {
+    "no": 3,
+    "ppk_name": "Pak Rano",
+    "nama_paket": "PPK IRWA 3 - Rehabilitasi Jaringan Irigasi D.I Walay Kab. Konawe (Tahap III)",
+    "satker": "op"
+  },
+  {
+    "no": 4,
+    "ppk_name": "Pak Rano",
+    "nama_paket": "PPK IRWA 3 - Supervisi Konstruksi Rehabilitasi Jaringan Irigasi D.I Walay Kab. Konawe (Tahap III)",
+    "satker": "op"
+  },
+  {
+    "no": 5,
+    "ppk_name": "Pak Arif",
+    "nama_paket": "PPK ATAB 2 - Rehabilitasi Jaringan Transmisi Air Baku Kota Baubau",
+    "satker": "op"
+  },
+  {
+    "no": 6,
+    "ppk_name": "Pak Arif",
+    "nama_paket": "PPK ATAB 2 - Supervisi Konstruksi Rehabilitasi Jaringan Transmisi Air Baku Kota Baubau",
+    "satker": "op"
+  },
+  {
+    "no": 7,
+    "ppk_name": "Ibu Dhani",
+    "nama_paket": "PPK ATAB 3 - Rehabilitasi Embung Ulu Benua Kab. Konawe",
+    "satker": "op"
+  },
+  {
+    "no": 1,
+    "ppk_name": "Pak Noto",
+    "nama_paket": "PPK SUPAN 1 - Pengendalian Banjir Sungai Lasusua (Lanjutan) Kab. Kolaka Utara",
+    "satker": "pjpa"
+  },
+  {
+    "no": 2,
+    "ppk_name": "Pak Noto",
+    "nama_paket": "PPK SUPAN 1 - Supervisi Konstruksi Pengendalian Banjir Sungai Lasusua (Lanjutan) Kab. Kolaka Utara",
+    "satker": "pjpa"
+  },
+  {
+    "no": 3,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Pengendalian Banjir Sungai Lasolo (Lanjutan) Kab. Konawe Utara",
+    "satker": "pjpa"
+  },
+  {
+    "no": 4,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Supervisi Konstruksi Pengendalian Banjir Sungai Lasolo (Lanjutan) Kab. Konawe Utara",
+    "satker": "pjpa"
+  },
+  {
+    "no": 5,
+    "ppk_name": "Pak Noto",
+    "nama_paket": "PPK SUPAN 1 - Pembangunan Pengaman Pantai Lasusua (Lanjutan) Kab. Kolaka Utara",
+    "satker": "pjpa"
+  },
+  {
+    "no": 6,
+    "ppk_name": "Pak Noto",
+    "nama_paket": "PPK SUPAN 1 - Supervisi Konstruksi Pembangunan Pengaman Pantai Lasusua (Lanjutan) Kab. Kolaka Utara",
+    "satker": "pjpa"
+  },
+  {
+    "no": 7,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Pembangunan Pengaman Pantai Kawasan Anaiwoi-Kampung Bajo Kab. Kolaka",
+    "satker": "pjpa"
+  },
+  {
+    "no": 8,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Supervisi Konstruksi Pembangunan Pengaman Pantai Kawasan Anaiwoi-Kampung Bajo Kab. Kolaka",
+    "satker": "pjpa"
+  },
+  {
+    "no": 9,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Pembangunan Pengaman Pantai Tondowolio (Lanjutan) Kab. Kolaka",
+    "satker": "pjpa"
+  },
+  {
+    "no": 10,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Supervisi Konstruksi Pembangunan Pengaman Pantai Tondowolio (Lanjutan) Kab. Kolaka",
+    "satker": "pjpa"
+  },
+  {
+    "no": 11,
+    "ppk_name": "Pak Noto",
+    "nama_paket": "PPK SUPAN 1 - Pembangunan Pengaman Pantai Raha (Lanjutan-Tahap III) Kab. Muna",
+    "satker": "pjpa"
+  },
+  {
+    "no": 12,
+    "ppk_name": "Pak Noto",
+    "nama_paket": "PPK SUPAN 1 - Supervisi Konstruksi Pembangunan Pengaman Pantai Raha (Lanjutan-Tahap III) Kab. Muna",
+    "satker": "pjpa"
+  },
+  {
+    "no": 13,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Pengendalian Banjir Sungai Konaweha Kab. Konawe",
+    "satker": "pjpa"
+  },
+  {
+    "no": 14,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Supervisi Konstruksi Pengendalian Banjir Sungai Konaweha Kab. Konawe",
+    "satker": "pjpa"
+  },
+  {
+    "no": 15,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Supervisi Konstruksi Pembangunan Tanggul Banjir Sungai Wanggu Kota Kendari (Lanjutan)",
+    "satker": "pjpa"
+  },
+  {
+    "no": 16,
+    "ppk_name": "Pak Juli",
+    "nama_paket": "PPK SUPAN 2 - Pembangunan Tanggul Banjir Sungai Wanggu Kota Kendari (Lanjutan)",
+    "satker": "pjpa"
+  },
+  {
+    "no": 1,
+    "ppk_name": "Pak Arifuddin",
+    "nama_paket": "PPK BEND 1. - Peningkatan Fungsi Tampungan Bendungan Ladongi untuk mendukung Ketahanan Pangan di Kabupaten Kolaka Timur",
+    "satker": "pjsa"
+  },
+  {
+    "no": 2,
+    "ppk_name": "Rachmat Deby",
+    "nama_paket": "PPK PERC. BEND. - Supervisi Konstruksi Peningkatan Fungsi Tampungan Bendungan Ladongi untuk mendukung Ketahanan Pangan di Kabupaten Kolaka Timur",
+    "satker": "pjsa"
+  }
+]
