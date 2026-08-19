@@ -14,8 +14,9 @@ Laravel 11, PHP 8.2, MySQL. Blade views (no SPA). Vite builds `resources/` asset
 php artisan serve                      # run dev server (http://127.0.0.1:8000)
 php artisan migrate                    # apply migrations
 php artisan migrate:fresh --seed       # rebuild schema; runs DatabaseSeeder (Pagu revisions only)
-php artisan db:seed --class=PpkSeeder  # seed the 17 reference PPKs (NOT in DatabaseSeeder)
-php artisan packets:sync               # fetch packets from the SIHKA API into DB (see below)
+php artisan db:seed --class=PpkSeeder              # seed the 17 reference PPKs (NOT in DatabaseSeeder)
+php artisan db:seed --class=PacketsRegularSeeder  # seed master list of regular packages from Excel
+php artisan packets:sync                          # fetch packets from the SIHKA API into DB (see below)
 php artisan test                       # run PHPUnit (or: ./vendor/bin/phpunit)
 php artisan test --filter=SomeTest     # run a single test
 npm run dev                            # Vite dev (only if editing resources/ assets)
@@ -49,6 +50,25 @@ External API (`config/services.php` → `sihka`, credentials in `.env`: `SIHKA_U
 - **Ranking** (dashboard "Progres per PPK & Peringkat") is by Keu % descending — satkers ranked among 5, PPKs ranked among all PPKs.
 
 `DashboardController::buildPpkProgres()` computes the hierarchical satker→PPK table; `buildUnmappedPpk()` detects packets with `ppk_id = null` grouped per satker (shown at the bottom of the dashboard). Monetary values in that table are displayed in thousands ("Rp.000").
+
+## Daftar Paket Reguler
+
+**Daftar Paket Reguler** (`/packets-reguler`, menu "Daftar Paket Reguler") is a master list of regular construction/maintenance packages for the year, grouped by satker. It is a separate, manually-maintained master table (`packets_reguler`) populated from an Excel file, distinct from the API-synced `packets` table.
+
+**Table structure** (`packets_reguler`):
+- `kode_paket` (unique): package code — either actual `kdpaket` from `packets` table (API), or generated code (format: `BAL-101`, `OPA-102`, etc.) for packages not found in API.
+- `nama_paket`: package name — matched to actual `nmpaket` from `packets` (if available), or cleaned name from Excel (stripped of "PPK xxx -" prefix).
+- `satker` (enum): one of 5 satker slugs.
+- `pagu` (bigint): budget allocation (calculated from sum of related `packets.pagu`, or 0 if not matched).
+
+**Matching logic**: packages from Excel are matched to `packets` by satker + substring of nama_paket. If match found, use actual `kdpaket`/`nmpaket` from API; otherwise generate unique code and use Excel name (cleaned). The `PacketsRegular` model provides methods:
+- `getRelatedPackets()`: returns matching rows from `packets` table via fuzzy name match.
+- `getRealisasi()`: sum realisasi from matched packets.
+- `getProgresKeu()`, `getProgresFisik()`: calculate progress metrics (same formula as dashboard).
+
+**Seeding**: Data source is an Excel file (`D:\08-13 Daftar Paket Konstruksi.xlsx`). Extract via openpyxl, strip "PPK xxx -" prefix, match to `packets`, generate unique codes. Seeder at `database/seeders/PacketsRegularSeeder.php` populates all 30+ packages. To re-seed from updated Excel: re-extract, re-match, regenerate seeder, run `php artisan migrate:refresh --path=.../packets_reguler && php artisan db:seed --class=PacketsRegularSeeder`.
+
+**Display**: `PacketsRegularController::index()` groups by satker and passes to `v_packets_regular_index.blade.php`, which renders sections per satker (header + table). Columns: Kode Paket, Nama Paket, PPK (from matched `packets.ppk_id`), Pagu, Realisasi, Progres Keu (%), Progres Fisik (%).
 
 ## Conventions & gotchas
 
