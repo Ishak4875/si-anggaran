@@ -1,0 +1,152 @@
+[
+  {
+    "no": 1,
+    "nama_paket": "Desain Rehabilitasi Jaringan Irigasi DI. Mowila Kab. Konawe Selatan",
+    "satker": "balai"
+  },
+  {
+    "no": 2,
+    "nama_paket": "Pemutakhiran Pemetaan Daerah Irigasi Kewenangan Pusat di Provinsi Sulawesi Tenggara",
+    "satker": "balai"
+  },
+  {
+    "no": 3,
+    "nama_paket": "Penyusunan Dokumen Kesiapan Peningkatan Jaringan Irigasi DI. Watumokala Kab. Konawe Selatan",
+    "satker": "balai"
+  },
+  {
+    "no": 4,
+    "nama_paket": "Penyusunan Dokumen Lingkungan Kegiatan Pembangunan Pengaman Pantai Kawasan Anaiwoi - Kampung Bajo Kab. Kolaka",
+    "satker": "balai"
+  },
+  {
+    "no": 5,
+    "nama_paket": "Desain Rehabilitasi Air Baku Tolihe Kab. Konawe Selatan",
+    "satker": "balai"
+  },
+  {
+    "no": 1,
+    "nama_paket": "Pembangunan Jaringan Irigasi DI Laiba Kab. Muna",
+    "satker": "op"
+  },
+  {
+    "no": 2,
+    "nama_paket": "Supervisi Konstruksi Pembangunan Jaringan Irigasi DI Laiba Kab. Muna",
+    "satker": "op"
+  },
+  {
+    "no": 3,
+    "nama_paket": "Rehabilitasi Jaringan Irigasi D.I Walay Kab. Konawe (Tahap III)",
+    "satker": "op"
+  },
+  {
+    "no": 4,
+    "nama_paket": "Supervisi Konstruksi Rehabilitasi Jaringan Irigasi D.I Walay Kab. Konawe (Tahap III)",
+    "satker": "op"
+  },
+  {
+    "no": 5,
+    "nama_paket": "Rehabilitasi Jaringan Transmisi Air Baku Kota Baubau",
+    "satker": "op"
+  },
+  {
+    "no": 6,
+    "nama_paket": "Supervisi Konstruksi Rehabilitasi Jaringan Transmisi Air Baku Kota Baubau",
+    "satker": "op"
+  },
+  {
+    "no": 7,
+    "nama_paket": "Rehabilitasi Embung Ulu Benua Kab. Konawe",
+    "satker": "op"
+  },
+  {
+    "no": 1,
+    "nama_paket": "Pengendalian Banjir Sungai Lasusua (Lanjutan) Kab. Kolaka Utara",
+    "satker": "pjsa"
+  },
+  {
+    "no": 2,
+    "nama_paket": "Supervisi Konstruksi Pengendalian Banjir Sungai Lasusua (Lanjutan) Kab. Kolaka Utara",
+    "satker": "pjsa"
+  },
+  {
+    "no": 3,
+    "nama_paket": "Pengendalian Banjir Sungai Lasolo (Lanjutan) Kab. Konawe Utara",
+    "satker": "pjsa"
+  },
+  {
+    "no": 4,
+    "nama_paket": "Supervisi Konstruksi Pengendalian Banjir Sungai Lasolo (Lanjutan) Kab. Konawe Utara",
+    "satker": "pjsa"
+  },
+  {
+    "no": 5,
+    "nama_paket": "Pembangunan Pengaman Pantai Lasusua (Lanjutan) Kab. Kolaka Utara",
+    "satker": "pjsa"
+  },
+  {
+    "no": 6,
+    "nama_paket": "Supervisi Konstruksi Pembangunan Pengaman Pantai Lasusua (Lanjutan) Kab. Kolaka Utara",
+    "satker": "pjsa"
+  },
+  {
+    "no": 7,
+    "nama_paket": "Pembangunan Pengaman Pantai Kawasan Anaiwoi-Kampung Bajo Kab. Kolaka",
+    "satker": "pjsa"
+  },
+  {
+    "no": 8,
+    "nama_paket": "Supervisi Konstruksi Pembangunan Pengaman Pantai Kawasan Anaiwoi-Kampung Bajo Kab. Kolaka",
+    "satker": "pjsa"
+  },
+  {
+    "no": 9,
+    "nama_paket": "Pembangunan Pengaman Pantai Tondowolio (Lanjutan) Kab. Kolaka",
+    "satker": "pjsa"
+  },
+  {
+    "no": 10,
+    "nama_paket": "Supervisi Konstruksi Pembangunan Pengaman Pantai Tondowolio (Lanjutan) Kab. Kolaka",
+    "satker": "pjsa"
+  },
+  {
+    "no": 11,
+    "nama_paket": "Pembangunan Pengaman Pantai Raha (Lanjutan-Tahap III) Kab. Muna",
+    "satker": "pjsa"
+  },
+  {
+    "no": 12,
+    "nama_paket": "Supervisi Konstruksi Pembangunan Pengaman Pantai Raha (Lanjutan-Tahap III) Kab. Muna",
+    "satker": "pjsa"
+  },
+  {
+    "no": 13,
+    "nama_paket": "Pengendalian Banjir Sungai Konaweha Kab. Konawe",
+    "satker": "pjsa"
+  },
+  {
+    "no": 14,
+    "nama_paket": "Supervisi Konstruksi Pengendalian Banjir Sungai Konaweha Kab. Konawe",
+    "satker": "pjsa"
+  },
+  {
+    "no": 15,
+    "nama_paket": "Supervisi Konstruksi Pembangunan Tanggul Banjir Sungai Wanggu Kota Kendari (Lanjutan)",
+    "satker": "pjsa"
+  },
+  {
+    "no": 16,
+    "nama_paket": "Pembangunan Tanggul Banjir Sungai Wanggu Kota Kendari (Lanjutan)",
+    "satker": "pjsa"
+  },
+  {
+    "no": 1,
+    "nama_paket": "Peningkatan Fungsi Tampungan Bendungan Ladongi untuk mendukung Ketahanan Pangan di Kabupaten Kolaka Timur",
+    "satker": "bendungan"
+  },
+  {
+    "no": 2,
+    "nama_paket": "Supervisi Konstruksi Peningkatan Fungsi Tampungan Bendungan Ladongi untuk mendukung Ketahanan Pangan di Kabupaten Kolaka Timur",
+    "satker": "bendungan"
+  }
+]
