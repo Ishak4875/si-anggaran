@@ -53,20 +53,35 @@ External API (`config/services.php` → `sihka`, credentials in `.env`: `SIHKA_U
 
 ## Daftar Paket Reguler
 
-**Daftar Paket Reguler** (`/packets-reguler`, menu "Daftar Paket Reguler") is a master list of regular construction/maintenance packages for the year, grouped by satker. It is a separate, manually-maintained master table (`packets_reguler`) populated from an Excel file, distinct from the API-synced `packets` table.
+**Daftar Paket Reguler** (`/packets-reguler`, menu "Daftar Paket Reguler") is a master list of regular construction/maintenance packages for the year, grouped by satker. It is a separate master table (`packets_reguler`) that pulls `nama_paket` from an Excel file and syncs `progres_keuangan` / `realisasi_fisik` with matched packets from the API-synced `packets` table.
 
 **Table structure** (`packets_reguler`):
-- `kode_paket` (unique): package code — either actual `kdpaket` from `packets` table (API), or generated code (format: `BAL-101`, `OPA-102`, etc.) for packages not found in API.
-- `nama_paket`: package name — matched to actual `nmpaket` from `packets` (if available), or cleaned name from Excel (stripped of "PPK xxx -" prefix).
-- `satker` (enum): one of 5 satker slugs.
-- `pagu` (bigint): budget allocation (calculated from sum of related `packets.pagu`, or 0 if not matched).
+- `kode_paket` (unique): package code — actual `kdpaket` from `packets` table (API). One-to-one match with API packets.
+- `nama_paket`: package name — pulled directly from Excel file (`D:\08-13 Daftar Paket Konstruksi.xlsx`) for consistency.
+- `satker` (enum): one of 3 active satker slugs: `balai`, `pjsa`, `bendungan` (OP removed—no API data).
+- `pagu` (bigint): budget allocation from matched `packets.pagu`.
 
-**Matching logic**: packages from Excel are matched to `packets` by satker + substring of nama_paket. If match found, use actual `kdpaket`/`nmpaket` from API; otherwise generate unique code and use Excel name (cleaned). The `PacketsRegular` model provides methods:
-- `getRelatedPackets()`: returns matching rows from `packets` table via fuzzy name match.
-- `getRealisasi()`: sum realisasi from matched packets.
-- `getProgresKeu()`, `getProgresFisik()`: calculate progress metrics (same formula as dashboard).
+**Matching logic** (`PacketsRegular::packets()` method in model):
+- **Priority 1 (exact match)**: if `kode_paket` contains a dot (API format `xxx.xxx.xxx.xxx`), match by exact `kdpaket` on `packets` table.
+- **Priority 2 (fuzzy match)**: if `kode_paket` is generated (format `BAL-001`, etc.), match by fuzzy `nama_paket` (substring search on first 25 chars) within the same satker.
+- Returns `Eloquent\Builder` so `getRelatedPackets()`, `getRealisasi()`, etc. work correctly.
 
-**Seeding**: Data source is an Excel file (`D:\08-13 Daftar Paket Konstruksi.xlsx`). Extract via openpyxl, strip "PPK xxx -" prefix, match to `packets`, generate unique codes. Seeder at `database/seeders/PacketsRegularSeeder.php` populates all 30+ packages. To re-seed from updated Excel: re-extract, re-match, regenerate seeder, run `php artisan migrate:refresh --path=.../packets_reguler && php artisan db:seed --class=PacketsRegularSeeder`.
+**Progress calculation**: The `PacketsRegular` model provides:
+- `getRelatedPackets()`: returns matched rows from `packets` table (usually 1 packet per reguler).
+- `getRealisasi()`: sum `realisasi` from matched packets.
+- `getProgresKeu()`: (Σrealisasi / Σpagu) × 100, matches dashboard formula.
+- `getProgresFisik()`: pagu-weighted average of `real_fisik` from matched packets.
+
+**Current dataset** (23 packages, all matched):
+- **BALAI**: 5 packages, Rp 6.78B pagu, Progres Keu 47.99%
+- **PJSA**: 16 packages, Rp 109.11B pagu, Progres Keu 50.49%
+- **BENDUNGAN**: 2 packages, Rp 16.30B pagu, Progres Keu 51.26%
+
+**Seeding**: `database/seeders/PacketsRegularSeeder.php` is a static hardcoded list (Excel was extracted once and matched to API). To update from new Excel:
+1. Extract package names from Excel (Python openpyxl or similar).
+2. Run matching script to find corresponding `kdpaket` values in API.
+3. Update seeder array with new data and commit.
+4. Run `php artisan db:seed --class=PacketsRegularSeeder`.
 
 **Display**: `PacketsRegularController::index()` groups by satker and passes to `v_packets_regular_index.blade.php`, which renders sections per satker (header + table). Columns: Kode Paket, Nama Paket, PPK (from matched `packets.ppk_id`), Pagu, Realisasi, Progres Keu (%), Progres Fisik (%).
 
