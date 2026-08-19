@@ -63,6 +63,17 @@
                 </a>
             </li>
 
+            {{-- Kelola Akun (Super Admin Only) --}}
+            @if (Auth::user()->isAdmin())
+                <li class="nav-item">
+                    <a href="{{ route('users.index') }}"
+                       class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-people"></i>
+                        <p>Kelola Akun</p>
+                    </a>
+                </li>
+            @endif
+
         </ul>
         <!--end::Sidebar Menu-->
     </nav>

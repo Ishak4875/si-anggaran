@@ -55,5 +55,32 @@ External API (`config/services.php` → `sihka`, credentials in `.env`: `SIHKA_U
 - Views are named `v_*.blade.php`; layout partials in `resources/views/layout/`. The sidebar (`layout.v_sidebar`) gets its data from a View Composer in `AppServiceProvider::boot()`.
 - **Do not auto-format `.blade.php` files.** A formatter once mangled `@if`/`@else` directives (URL-encoded them) and broke the dashboard. `.vscode/settings.json` disables format-on-save for Blade — keep it.
 - App runs in UTC (`APP_TIMEZONE=UTC`); timestamps are converted to Asia/Makassar (WITA) only at display time in the views.
-- The "manage" pages (Pagu revisions, PPK) follow one of two patterns: `PaguController` uses bulk delete-and-recreate on save; `PpkController` uses per-row modals (Tambah/Perbarui/Hapus). Match the surrounding page's pattern when extending.
+- The "manage" pages follow one of two patterns: `PaguController` uses bulk delete-and-recreate on save; `PpkController` and `UserController` use per-row modals (Tambah/Perbarui/Hapus) with color-coded headers (blue/yellow/red). Match the surrounding page's pattern when extending.
 - No test suite beyond Laravel's example tests.
+
+## Authentication & User Management
+
+**Login & Register** are implemented with Laravel's built-in auth:
+- **Login** (`GET /login`, `POST /login`, AuthController): public login page (accessible to unauthenticated users).
+- **Logout** (`POST /logout`, AuthController): submits CSRF token as form button in profile dropdown.
+- **Register** (`GET /register`, `POST /register`, AuthController): routes still exist but **not accessible from UI**. User creation is exclusively managed by super admin via "Kelola Akun" modal (see below).
+- All dashboard/data routes require `middleware('auth')`; unauthenticated access redirects to `/login` (configured in `bootstrap/app.php`).
+
+**User roles** (`users.role` enum: `'user'` or `'admin'`):
+- `'admin'` = super admin; can access the "Kelola Akun" menu and manage all user accounts (create/edit/delete).
+- `'user'` = regular user; can use the dashboard and data-management pages but NOT access user management.
+- Menu "Kelola Akun" is hidden in sidebar for non-admin users; direct access to `/users*` routes returns 403 Forbidden (checked in `UserController` via private `authorize()` method).
+
+**User Management** (`UserController`, `/users` page, `v_user_index.blade.php`, admin-only) — **exclusive method for creating/managing users**; no public registration. Follows the same modal pattern as `PpkController`:
+- **Tambah (Add)** modal: blue header (`text-bg-primary`), creates new user with name/email/password/role (requires admin).
+- **Perbarui (Edit)** modal: yellow header (`text-bg-warning`), updates user data; password field is optional (leave empty to keep current).
+- **Hapus (Delete)** modal: red header (`text-bg-danger`), confirmation dialog; logged-in admin cannot delete their own account.
+- All modals use Bootstrap 5 and JavaScript to populate form fields from row data attributes.
+- **Primary Key**: `users.id` (auto-increment); email is `unique` key but can be changed without affecting foreign-key relations (all relations use `id`).
+- Validation errors shown as alert at top of page; success messages redirect with session flash.
+
+**Default accounts** (check `database/migrations/..._add_role_to_users_table.php`):
+- `Admin BWS` (admin@bws4.test, password: check notes) — super admin (role='admin')
+- `KPISDA` (kpisda.bwssiv@gmail.com, password: admin123) — regular user (role='user')
+
+User model: `User::isAdmin()` checks if `$user->role === 'admin'`. Auth profile dropdown in header shows logged-in user's name and "Member since [month]"; "Sign out" button submits a POST form to `/logout`.

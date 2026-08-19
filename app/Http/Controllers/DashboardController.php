@@ -295,8 +295,19 @@ class DashboardController extends Controller
             ->selectRaw('SUM(real_fisik * pagu) as fnum, SUM(CASE WHEN real_fisik IS NOT NULL THEN pagu ELSE 0 END) as fden')
             ->first();
 
+        // Urutan tampil khusus tabel ini: tukar posisi Satker BWS Sulawesi IV (balai)
+        // dengan Satker Operasi dan Pemeliharaan (op). Urutan global config/satker.php
+        // (dipakai tabel/halaman lain) tidak berubah.
+        $urutanTampil = array_keys($satkers);
+        $iBalai = array_search('balai', $urutanTampil);
+        $iOp = array_search('op', $urutanTampil);
+        if ($iBalai !== false && $iOp !== false) {
+            [$urutanTampil[$iBalai], $urutanTampil[$iOp]] = [$urutanTampil[$iOp], $urutanTampil[$iBalai]];
+        }
+        $satkersUrut = array_map(fn ($slug) => $satkers[$slug], $urutanTampil);
+
         return [
-            'satkers' => array_values($satkers),
+            'satkers' => $satkersUrut,
             'total'   => [
                 'pagu'      => $totPagu,
                 'realisasi' => $totReal,

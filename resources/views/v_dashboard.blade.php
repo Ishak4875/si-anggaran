@@ -226,6 +226,7 @@
             </div>
             <div class="card-body p-0">
                 <style>
+                    #ppkProgresTable { font-size: 13pt; }
                     #ppkProgresTable th,
                     #ppkProgresTable td { vertical-align: middle !important; }
                     /* Hilangkan garis tengah yang menembus sel rowspan (No., Satker/PPK, Pagu, Realisasi, Rank) di header. */
@@ -496,6 +497,7 @@
             },
             dataLabels: {
                 enabled: true,
+                offsetY: 18, // geser label ke atas agar tidak menabrak batas segmen di bawahnya
                 style: { colors: ['#fff'], fontSize: '10px', fontWeight: 400 },
                 background: {
                     enabled: true,

@@ -119,7 +119,7 @@
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                             <img src="{{ asset('template/dist') }}/assets/img/user2-160x160.jpg"
                                 class="user-image rounded-circle shadow" alt="User Image" />
-                            <span class="d-none d-md-inline">Alexander Pierce</span>
+                            <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
                             <!--begin::User Image-->
@@ -127,13 +127,16 @@
                                 <img src="{{ asset('template/dist') }}/assets/img/user2-160x160.jpg"
                                     class="rounded-circle shadow" alt="User Image" />
                                 <p>
-                                    Alexander Pierce - Web Developer
-                                    <small>Member since Nov. 2023</small>
+                                    {{ Auth::user()->name }}
+                                    <small>Member since {{ Auth::user()->created_at->translatedFormat('M Y') }}</small>
                                 </p>
                             </li>
                             <li class="user-footer">
                                 <a href="#" class="btn btn-outline-secondary">Profile</a>
-                                <a href="#" class="btn btn-outline-danger float-end">Sign out</a>
+                                <form method="POST" action="{{ route('logout') }}" class="float-end">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-danger">Sign out</button>
+                                </form>
                             </li>
                             <!--end::Menu Footer-->
                         </ul>
