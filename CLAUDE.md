@@ -58,7 +58,7 @@ External API (`config/services.php` → `sihka`, credentials in `.env`: `SIHKA_U
 **Table structure** (`packets_reguler`):
 - `kode_paket` (unique): package code — actual `kdpaket` from `packets` table (API). One-to-one match with API packets.
 - `nama_paket`: package name — pulled directly from Excel file (`D:\08-13 Daftar Paket Konstruksi.xlsx`) for consistency.
-- `satker` (enum): one of 3 active satker slugs: `balai`, `pjsa`, `bendungan` (OP removed—no API data).
+- `satker` (enum): one of 4 active satker slugs: `balai`, `pjpa`, `pjsa`, `bendungan` (OP removed—no API data).
 - `pagu` (bigint): budget allocation from matched `packets.pagu`.
 
 **Matching logic** (`PacketsRegular::packets()` method in model):
@@ -72,8 +72,9 @@ External API (`config/services.php` → `sihka`, credentials in `.env`: `SIHKA_U
 - `getProgresKeu()`: (Σrealisasi / Σpagu) × 100, matches dashboard formula.
 - `getProgresFisik()`: pagu-weighted average of `real_fisik` from matched packets.
 
-**Current dataset** (23 packages, all matched):
+**Current dataset** (30 packages, all matched):
 - **BALAI**: 5 packages, Rp 6.78B pagu, Progres Keu 47.99%
+- **PJPA**: 7 packages, Rp 81.84B pagu
 - **PJSA**: 16 packages, Rp 109.11B pagu, Progres Keu 50.49%
 - **BENDUNGAN**: 2 packages, Rp 16.30B pagu, Progres Keu 51.26%
 
@@ -84,6 +85,8 @@ External API (`config/services.php` → `sihka`, credentials in `.env`: `SIHKA_U
 4. Run `php artisan db:seed --class=PacketsRegularSeeder`.
 
 **Display**: `PacketsRegularController::index()` groups by satker and passes to `v_packets_regular_index.blade.php`, which renders sections per satker (header + table). Columns: Kode Paket, Nama Paket, PPK (from matched `packets.ppk_id`), Pagu, Realisasi, Progres Keu (%), Progres Fisik (%).
+
+**Real-time search** (client-side filtering): A search input in the card header filters rows as you type, matching against both `kode_paket` and `nama_paket`. Satker sections with no matching packets are hidden automatically. Row numbers re-sequence per satker. Implemented via JavaScript in `@push('scripts')` — no page reload needed. Each row has a `data-cari` attribute with lowercased kode+nama for substring matching.
 
 ## Conventions & gotchas
 

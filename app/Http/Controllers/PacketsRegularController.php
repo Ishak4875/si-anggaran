@@ -8,8 +8,16 @@ use App\Support\Satker;
 
 class PacketsRegularController extends Controller
 {
+    private function authorize()
+    {
+        if (! auth()->user()?->isAdmin()) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
     public function index()
     {
+        $this->authorize();
         $satkerOptions = Satker::getNamesMap();
         $packets = PacketsRegular::orderBy('satker')
             ->orderBy('nama_paket')

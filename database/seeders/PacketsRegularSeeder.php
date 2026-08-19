@@ -173,6 +173,55 @@ class PacketsRegularSeeder extends Seeder
     'satker' => 'bendungan',
     'pagu' => 754247000,
   ),
+  23 =>
+  array (
+    'kode_paket' => '03.694244.FC.7691.CBS.002.103.A',
+    'nama_paket' => 'Pembangunan Jaringan Irigasi DI Laiba Kab. Muna; 2.07 Km; 156.52 Ha; F; K; SYC',
+    'satker' => 'pjpa',
+    'pagu' => 19800000000,
+  ),
+  24 =>
+  array (
+    'kode_paket' => '03.694244.FC.7691.CBS.002.100.A',
+    'nama_paket' => 'Supervisi Konstruksi Pembangunan Jaringan Irigasi DI Laiba Kab. Muna; 1 Dokumen; 1 Dokumen; NF; K; SYC',
+    'satker' => 'pjpa',
+    'pagu' => 1198686000,
+  ),
+  25 =>
+  array (
+    'kode_paket' => '03.694244.FC.7691.CBS.002.105.A',
+    'nama_paket' => 'Rehabilitasi Jaringan Irigasi D.I Walay Kab. Konawe (Tahap III); 8.995 Km; 1420 Ha; F; K; SYC',
+    'satker' => 'pjpa',
+    'pagu' => 42000000000,
+  ),
+  26 =>
+  array (
+    'kode_paket' => '03.694244.FC.7691.CBS.002.100.B',
+    'nama_paket' => 'Supervisi Konstruksi Rehabilitasi Jaringan Irigasi D.I Walay Kab. Konawe (Tahap III); 1 Dokumen; 1 Dokumen; NF; K; SYC',
+    'satker' => 'pjpa',
+    'pagu' => 2497644000,
+  ),
+  27 =>
+  array (
+    'kode_paket' => '03.694244.FC.7694.CBS.001.105.A',
+    'nama_paket' => 'Rehabilitasi Jaringan Transmisi Air Baku Kota Baubau; 4 Km; 0.05 M3/Detik; F; K; SYC',
+    'satker' => 'pjpa',
+    'pagu' => 12773653000,
+  ),
+  28 =>
+  array (
+    'kode_paket' => '03.694244.FC.7694.CBS.001.100.A',
+    'nama_paket' => 'Supervisi Konstruksi Rehabilitasi Jaringan Transmisi Air Baku Kota Baubau; 1 Dokumen; 1 Dokumen; NF; K; SYC',
+    'satker' => 'pjpa',
+    'pagu' => 793862000,
+  ),
+  29 =>
+  array (
+    'kode_paket' => '03.694244.FC.7694.CBG.001.105.A',
+    'nama_paket' => 'Rehabilitasi Embung Ulu Benua Kab. Konawe; 1 Unit; 0.0006 m3/detik; F; K; SYC',
+    'satker' => 'pjpa',
+    'pagu' => 2773948000,
+  ),
 );
 
         foreach ($data as $packet) {
