@@ -88,6 +88,97 @@ External API (`config/services.php` → `sihka`, credentials in `.env`: `SIHKA_U
 
 **Real-time search** (client-side filtering): A search input in the card header filters rows as you type, matching against both `kode_paket` and `nama_paket`. Satker sections with no matching packets are hidden automatically. Row numbers re-sequence per satker. Implemented via JavaScript in `@push('scripts')` — no page reload needed. Each row has a `data-cari` attribute with lowercased kode+nama for substring matching.
 
+## Progress e-Monitoring Report (`progress:report` command)
+
+**Command**: `php artisan progress:report`
+
+Interactive CLI command that generates a formatted WhatsApp progress report for e-Monitoring. Steps through:
+1. **Input Ditjen SDA progress** — prompts for Keuangan (%) and Fisik (%) values (0-100)
+2. **API Sync** — runs `packets:sync` to fetch latest data from SIHKA
+3. **Build Report** — aggregates progress data from packets table, ranks satker/PPK
+4. **Output** — displays formatted WA message (ready to copy-paste) + screenshot instruction
+
+**Report Data Structure**:
+- **Ditjen SDA section**: User-input Keu % and Fis %
+- **BWS aggregates**: Calculated from all packets (Keuangan = Σrealisasi/Σpagu × 100; Fisik = weighted avg)
+- **Deviasi**: Difference between BWS and Ditjen SDA progress (positive = better than target)
+- **Satker ranking**: 5 satker ranked by Progres Keuangan descending, top 3 marked with 🥇🥈🥉
+- **PPK ranking**: All 17 PPK ranked by Progres Keuangan, top 3 marked with emoji, bottom 1 (below Ditjen SDA) noted separately
+- **Status timestamp**: From latest packet update, formatted as "DD Mon YYYY ; HH:mm WITA"
+- **Greeting**: Dynamic (Selamat Pagi/Siang/Sore/Malam) based on current Asia/Makassar time
+
+**Message Format**:
+- Section 1: Ditjen SDA progress
+- Section 2: BWS progress
+- Section 3: Deviasi calculation
+- Section 4: Satker rankings with emoji
+- Section 5: All 17 PPK rankings with short names (e.g., "PPK Atab I" for "PPK Air Tanah dan Air Baku 1")
+- Section 6: Bottom performer (if exists below Ditjen target)
+- Footer: Configurable CC name (default: "Bapak Kabalai")
+
+**Services Used**:
+- `ProgressReportService` (app/Services/) — aggregates packets, calculates progress, ranks
+- `WhatsAppMessageFormatter` (app/Services/) — formats data into WA message
+- `DashboardScreenshotService` (app/Services/) — provides instruction to manually capture screenshot from dashboard ("Unduh Gambar" button)
+
+**Configuration** (`config/progress.php`):
+```php
+'cc_name' => env('PROGRESS_CC_NAME', 'Bapak Kabalai'),  // Footer CC name
+'bws_name' => env('PROGRESS_BWS_NAME', 'BWS Sul IV KDI'), // Official BWS name in message
+'timezone' => env('PROGRESS_TIMEZONE', 'Asia/Makassar'), // For greeting time zone
+'screenshot_timeout' => 30, // Seconds (if browser automation added later)
+'storage_path' => 'progress', // storage/ subdirectory for screenshots
+```
+
+Update `.env` to customize:
+```
+PROGRESS_CC_NAME="Bapak Kabalai"
+PROGRESS_BWS_NAME="BWS Sul IV KDI"
+```
+
+**Example Output**:
+```
+Selamat Siang Bpk/Ibu
+
+Mohon izin menyampaikan progres e-Monitoring status :  20 Aug 2026 ; 12:51 WITA
+
+🔘Progres K/F Ditjen SDA :
+Keuangan  : 40.32 %
+Fisik  : 42.79 %
+
+🔘Progres K/F BWS Sul IV KDI :
+Keuangan  : 52.57 %
+Fisik  : 51.67 %
+
+➡ Deviasi Progres K/F BWS Sul IV KDI thdp Ditjen SDA :
+Keuangan  : 12.25 %
+Fisik  : 8.88 %
+
+Rincian Progres K/F Masing2 Satker di lingkungan BWS Sul IV KDI :
+🔹Satker OPSDA : 57.38 % / 54.88 %🥇
+🔹SNVT Bendungan  : 53.89 % / 55.86 %🥈
+... (all 5 satkers)
+
+🔘 Progres K/F masing2 PPK di lingkungan BWS SUL IV KDI:
+1. PPK Atab I : 99.96 % / 99.96 %🥇
+2. PPK Bend II : 88.06 % / 88.06 %🥈
+... (all 17 PPKs)
+
+🔘  Progres Keu di bawah Ditjen SDA *berdasarkan iemon* :
+[Only if exists below Ditjen target]
+
+Demikian disampaikan, terima kasih..
+Salam Damai Indonesia, Bahagia untuk Semua 💪💪💪
+Cc. Bapak Kabalai
+```
+
+**Developer Notes**:
+- Ranking formula: Keuangan % (financial absorption) is primary sort metric; Fisik % (physical realization, weighted by pagu) is secondary display
+- PPK short names mapped in `WhatsAppMessageFormatter::shortPpkName()` (e.g., "PPK Air Tanah dan Air Baku 1" → "PPK Atab I")
+- Greeting determined by `now()->setTimezone('Asia/Makassar')->hour`: Pagi (0-10), Siang (11-14), Sore (15-17), Malam (18-23)
+- Status timestamp sourced from `Packet::latest('updated_at')` to show when data was last synced
+- "Bottom performer" = lowest Keu % among PPK below Ditjen SDA Keu target
+
 ## Conventions & gotchas
 
 - Views are named `v_*.blade.php`; layout partials in `resources/views/layout/`. The sidebar (`layout.v_sidebar`) gets its data from a View Composer in `AppServiceProvider::boot()`.
