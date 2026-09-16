@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PaguRevision;
 use App\Support\Satker;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,13 +41,24 @@ class PaguController extends Controller
         DB::transaction(function () use ($data, $groups) {
             PaguRevision::query()->delete();
 
-            $urutan = 0;
+            // Collect & filter non-empty rows
+            $rows = [];
             foreach ($data['revisions'] ?? [] as $row) {
-                // Lewati baris tanpa keterangan (baris kosong).
-                if (blank($row['keterangan'] ?? null)) {
-                    continue;
+                if (!blank($row['keterangan'] ?? null)) {
+                    $rows[] = $row;
                 }
+            }
 
+            // Sort by tanggal (chronological order, nulls last)
+            usort($rows, function ($a, $b) {
+                $dateA = $a['tanggal'] ? Carbon::createFromFormat('Y-m-d', $a['tanggal'])->timestamp : PHP_INT_MAX;
+                $dateB = $b['tanggal'] ? Carbon::createFromFormat('Y-m-d', $b['tanggal'])->timestamp : PHP_INT_MAX;
+                return $dateA <=> $dateB;
+            });
+
+            // Create sorted data with urutan
+            $urutan = 0;
+            foreach ($rows as $row) {
                 $nilai = [];
                 foreach ($groups as $slug) {
                     $v = $row['nilai'][$slug] ?? null;
