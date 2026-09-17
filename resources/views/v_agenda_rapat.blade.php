@@ -47,16 +47,16 @@
                 </div>
             </div>
             <div class="card-header d-flex flex-wrap align-items-center gap-2 border-top-0">
-                <span class="text-secondary small">Filter:</span>
-                <select id="filterBulan" class="form-select form-select-sm" style="max-width:200px">
-                    <option value="">Semua Bulan</option>
-                    @foreach ($bulanOptions as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-                <button type="button" id="filterHariIni" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-calendar-check"></i> Hari Ini
-                </button>
+                <button type="button" id="bulanToday" class="btn btn-sm btn-outline-secondary">Today</button>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" id="bulanPrev" class="btn btn-outline-secondary" title="Bulan sebelumnya">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" id="bulanNext" class="btn btn-outline-secondary" title="Bulan berikutnya">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <span id="bulanLabel" class="fw-semibold fs-6 ms-1"></span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -256,27 +256,39 @@
             document.getElementById('hapusJudul').textContent = b.dataset.nama || 'Hapus Agenda Rapat';
         });
 
-        // Pencarian real-time berdasarkan tanggal / nama agenda, ditambah filter bulan & "Hari Ini"
+        // Pencarian real-time berdasarkan tanggal / nama agenda, ditambah navigasi filter bulan
         const cariInput = document.getElementById('cariAgenda');
         const cariReset = document.getElementById('cariReset');
         const kosongCari = document.getElementById('barisKosongCari');
-        const filterBulan = document.getElementById('filterBulan');
-        const filterHariIni = document.getElementById('filterHariIni');
+        const bulanLabel = document.getElementById('bulanLabel');
+        const bulanPrev = document.getElementById('bulanPrev');
+        const bulanNext = document.getElementById('bulanNext');
+        const bulanToday = document.getElementById('bulanToday');
 
-        const todayIso = new Date().toLocaleDateString('sv-SE'); // format YYYY-MM-DD, timezone lokal browser
-        let hariIniAktif = false;
+        const NAMA_BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+        const now = new Date();
+        let bulanAktif = { tahun: now.getFullYear(), bulan: now.getMonth() + 1 }; // bulan: 1-12
+
+        function bulanKey({ tahun, bulan }) {
+            return `${tahun}-${String(bulan).padStart(2, '0')}`;
+        }
+
+        function updateBulanLabel() {
+            bulanLabel.textContent = `${NAMA_BULAN[bulanAktif.bulan - 1]} ${bulanAktif.tahun}`;
+        }
 
         function filterAgenda() {
             const q = cariInput.value.trim().toLowerCase();
-            const bulan = filterBulan.value;
+            const bulanFilter = bulanKey(bulanAktif);
             const rows = Array.from(document.querySelectorAll('.agenda-row'));
             let visible = 0;
 
             rows.forEach((row) => {
                 const cocokCari = q === '' || row.dataset.cari.includes(q);
-                const cocokBulan = bulan === '' || row.dataset.bulan === bulan;
-                const cocokHariIni = !hariIniAktif || row.dataset.tanggalIso === todayIso;
-                const cocok = cocokCari && cocokBulan && cocokHariIni;
+                // Agenda tanpa tanggal (data-bulan kosong) selalu ikut tampil, tidak terikat bulan manapun.
+                const cocokBulan = row.dataset.bulan === '' || row.dataset.bulan === bulanFilter;
+                const cocok = cocokCari && cocokBulan;
 
                 row.classList.toggle('d-none', !cocok);
                 if (cocok) {
@@ -288,6 +300,16 @@
             kosongCari.classList.toggle('d-none', visible !== 0 || rows.length === 0);
         }
 
+        function gantiBulan(selisih) {
+            let { tahun, bulan } = bulanAktif;
+            bulan += selisih;
+            if (bulan > 12) { bulan = 1; tahun++; }
+            if (bulan < 1) { bulan = 12; tahun--; }
+            bulanAktif = { tahun, bulan };
+            updateBulanLabel();
+            filterAgenda();
+        }
+
         if (cariInput) {
             cariInput.addEventListener('input', filterAgenda);
             cariReset.addEventListener('click', () => {
@@ -295,14 +317,18 @@
                 filterAgenda();
                 cariInput.focus();
             });
-            filterBulan.addEventListener('change', filterAgenda);
-            filterHariIni.addEventListener('click', () => {
-                hariIniAktif = !hariIniAktif;
-                filterHariIni.classList.toggle('btn-outline-primary', !hariIniAktif);
-                filterHariIni.classList.toggle('btn-primary', hariIniAktif);
-                filterHariIni.classList.toggle('text-white', hariIniAktif);
+            bulanPrev.addEventListener('click', () => gantiBulan(-1));
+            bulanNext.addEventListener('click', () => gantiBulan(1));
+            bulanToday.addEventListener('click', () => {
+                const n = new Date();
+                bulanAktif = { tahun: n.getFullYear(), bulan: n.getMonth() + 1 };
+                updateBulanLabel();
                 filterAgenda();
             });
+
+            // Default: langsung terfilter ke bulan berjalan saat halaman dibuka.
+            updateBulanLabel();
+            filterAgenda();
         }
     })();
 </script>

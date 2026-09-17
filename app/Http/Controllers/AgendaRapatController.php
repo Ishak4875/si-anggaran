@@ -33,24 +33,13 @@ class AgendaRapatController extends Controller
      */
     public function index(): View
     {
-        // Terbaru dulu (descending); baris tanpa tanggal/waktu (opsional) tetap di akhir.
-        $agendas = AgendaRapat::orderByRaw('tanggal_agenda IS NULL')
-            ->orderByDesc('tanggal_agenda')
-            ->orderByRaw('waktu IS NULL')
-            ->orderByDesc('waktu')
-            ->get();
-
-        // Opsi dropdown filter bulan: unique bulan-tahun dari data yang ada, terbaru dulu.
-        $bulanOptions = $agendas
-            ->whereNotNull('tanggal_agenda')
-            ->map(fn ($a) => $a->tanggal_agenda->format('Y-m'))
-            ->unique()
-            ->sortDesc()
-            ->mapWithKeys(fn ($ym) => [$ym => \Illuminate\Support\Carbon::createFromFormat('Y-m', $ym)->locale('id')->translatedFormat('F Y')]);
-
         return view('v_agenda_rapat', [
-            'agendas'      => $agendas,
-            'bulanOptions' => $bulanOptions,
+            // Terbaru dulu (descending); baris tanpa tanggal/waktu (opsional) tetap di akhir.
+            'agendas' => AgendaRapat::orderByRaw('tanggal_agenda IS NULL')
+                ->orderByDesc('tanggal_agenda')
+                ->orderByRaw('waktu IS NULL')
+                ->orderByDesc('waktu')
+                ->get(),
         ]);
     }
 
