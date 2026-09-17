@@ -38,4 +38,10 @@ return [
         'key'      => env('SIHKA_KEY'),
     ],
 
+    // Google Calendar sync (Agenda Rapat) via Service Account
+    'google_calendar' => [
+        'credentials_path' => env('GOOGLE_CALENDAR_CREDENTIALS_PATH', 'storage/app/google/calendar-service-account.json'),
+        'calendar_id'      => env('GOOGLE_CALENDAR_ID'),
+    ],
+
 ];

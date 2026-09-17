@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgendaRapat;
+use App\Services\GoogleCalendarService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AgendaRapatController extends Controller
 {
+    public function __construct(private GoogleCalendarService $googleCalendar)
+    {
+    }
+
     /**
      * Aturan validasi untuk tambah/ubah agenda rapat.
      */
@@ -45,7 +50,8 @@ class AgendaRapatController extends Controller
     {
         $data = $request->validate($this->rules());
 
-        AgendaRapat::create($data);
+        $agenda = AgendaRapat::create($data);
+        $this->googleCalendar->syncAgenda($agenda);
 
         return redirect()
             ->route('agenda-rapat.index')
@@ -60,6 +66,7 @@ class AgendaRapatController extends Controller
         $data = $request->validate($this->rules());
 
         $agendaRapat->update($data);
+        $this->googleCalendar->syncAgenda($agendaRapat);
 
         return redirect()
             ->route('agenda-rapat.index')
@@ -71,6 +78,7 @@ class AgendaRapatController extends Controller
      */
     public function destroy(AgendaRapat $agendaRapat): RedirectResponse
     {
+        $this->googleCalendar->removeAgenda($agendaRapat);
         $agendaRapat->delete();
 
         return redirect()
