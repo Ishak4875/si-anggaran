@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgendaRapatController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaguController;
@@ -35,6 +36,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/ppk/{ppk}', [PpkController::class, 'destroy'])->name('ppk.destroy');
 
     Route::get('/packets-reguler', [PacketsRegularController::class, 'index'])->name('packets-reguler.index');
+
+    Route::get('/agenda-rapat', [AgendaRapatController::class, 'index'])->name('agenda-rapat.index');
+    Route::post('/agenda-rapat', [AgendaRapatController::class, 'store'])->name('agenda-rapat.store');
+    Route::put('/agenda-rapat/{agendaRapat}', [AgendaRapatController::class, 'update'])->name('agenda-rapat.update');
+    Route::delete('/agenda-rapat/{agendaRapat}', [AgendaRapatController::class, 'destroy'])->name('agenda-rapat.destroy');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');

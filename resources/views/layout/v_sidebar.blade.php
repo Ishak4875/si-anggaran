@@ -74,6 +74,15 @@
                 </a>
             </li>
 
+            {{-- Agenda Rapat --}}
+            <li class="nav-item">
+                <a href="{{ route('agenda-rapat.index') }}"
+                   class="nav-link {{ request()->routeIs('agenda-rapat.*') ? 'active' : '' }}">
+                    <i class="nav-icon bi bi-calendar-event"></i>
+                    <p>Agenda Rapat</p>
+                </a>
+            </li>
+
             {{-- Kelola Akun (Super Admin Only) --}}
             @if (Auth::user()->isAdmin())
                 <li class="nav-item">
