@@ -35,7 +35,7 @@
         @endif
 
         <div class="card">
-            <div class="card-header d-flex align-items-center gap-2">
+            <div class="card-header d-flex flex-wrap align-items-center gap-2">
                 <span class="fw-semibold">Daftar Agenda</span>
                 <div class="input-group input-group-sm ms-auto" style="max-width:320px">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -45,6 +45,18 @@
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
+            </div>
+            <div class="card-header d-flex flex-wrap align-items-center gap-2 border-top-0">
+                <span class="text-secondary small">Filter:</span>
+                <select id="filterBulan" class="form-select form-select-sm" style="max-width:200px">
+                    <option value="">Semua Bulan</option>
+                    @foreach ($bulanOptions as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+                <button type="button" id="filterHariIni" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-calendar-check"></i> Hari Ini
+                </button>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -64,11 +76,13 @@
                             @forelse ($agendas as $i => $agenda)
                                 @php
                                     $tanggalCari = $agenda->tanggal_agenda
-                                        ? $agenda->tanggal_agenda->format('d/m/Y') . ' ' . $agenda->tanggal_agenda->format('d-m-Y') . ' ' . $agenda->tanggal_agenda->translatedFormat('d F Y')
+                                        ? $agenda->tanggal_agenda->format('d/m/Y') . ' ' . $agenda->tanggal_agenda->format('d-m-Y') . ' ' . $agenda->tanggal_agenda->locale('id')->translatedFormat('d F Y')
                                         : '';
                                 @endphp
                                 <tr class="agenda-row"
-                                    data-cari="{{ Str::lower(trim($tanggalCari . ' ' . $agenda->nama_agenda)) }}">
+                                    data-cari="{{ Str::lower(trim($tanggalCari . ' ' . $agenda->nama_agenda)) }}"
+                                    data-tanggal-iso="{{ optional($agenda->tanggal_agenda)->format('Y-m-d') }}"
+                                    data-bulan="{{ optional($agenda->tanggal_agenda)->format('Y-m') }}">
                                     <td class="text-center nomor">{{ $i + 1 }}</td>
                                     <td>{{ $agenda->tanggal_agenda?->format('d/m/Y') ?: '—' }}</td>
                                     <td>{{ $agenda->nama_agenda }}</td>
@@ -242,18 +256,28 @@
             document.getElementById('hapusJudul').textContent = b.dataset.nama || 'Hapus Agenda Rapat';
         });
 
-        // Pencarian real-time berdasarkan tanggal / nama agenda
+        // Pencarian real-time berdasarkan tanggal / nama agenda, ditambah filter bulan & "Hari Ini"
         const cariInput = document.getElementById('cariAgenda');
         const cariReset = document.getElementById('cariReset');
         const kosongCari = document.getElementById('barisKosongCari');
+        const filterBulan = document.getElementById('filterBulan');
+        const filterHariIni = document.getElementById('filterHariIni');
+
+        const todayIso = new Date().toLocaleDateString('sv-SE'); // format YYYY-MM-DD, timezone lokal browser
+        let hariIniAktif = false;
 
         function filterAgenda() {
             const q = cariInput.value.trim().toLowerCase();
+            const bulan = filterBulan.value;
             const rows = Array.from(document.querySelectorAll('.agenda-row'));
             let visible = 0;
 
-            rows.forEach((row, idx) => {
-                const cocok = q === '' || row.dataset.cari.includes(q);
+            rows.forEach((row) => {
+                const cocokCari = q === '' || row.dataset.cari.includes(q);
+                const cocokBulan = bulan === '' || row.dataset.bulan === bulan;
+                const cocokHariIni = !hariIniAktif || row.dataset.tanggalIso === todayIso;
+                const cocok = cocokCari && cocokBulan && cocokHariIni;
+
                 row.classList.toggle('d-none', !cocok);
                 if (cocok) {
                     visible++;
@@ -270,6 +294,14 @@
                 cariInput.value = '';
                 filterAgenda();
                 cariInput.focus();
+            });
+            filterBulan.addEventListener('change', filterAgenda);
+            filterHariIni.addEventListener('click', () => {
+                hariIniAktif = !hariIniAktif;
+                filterHariIni.classList.toggle('btn-outline-primary', !hariIniAktif);
+                filterHariIni.classList.toggle('btn-primary', hariIniAktif);
+                filterHariIni.classList.toggle('text-white', hariIniAktif);
+                filterAgenda();
             });
         }
     })();
