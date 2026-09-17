@@ -269,13 +269,20 @@
 
         const now = new Date();
         let bulanAktif = { tahun: now.getFullYear(), bulan: now.getMonth() + 1 }; // bulan: 1-12
+        let modeHariIni = false; // true = "Today" aktif, filter hanya tanggal hari ini
+        const todayIso = new Date().toLocaleDateString('sv-SE'); // format YYYY-MM-DD, timezone lokal browser
 
         function bulanKey({ tahun, bulan }) {
             return `${tahun}-${String(bulan).padStart(2, '0')}`;
         }
 
         function updateBulanLabel() {
-            bulanLabel.textContent = `${NAMA_BULAN[bulanAktif.bulan - 1]} ${bulanAktif.tahun}`;
+            if (modeHariIni) {
+                const n = new Date();
+                bulanLabel.textContent = `${n.getDate()} ${NAMA_BULAN[n.getMonth()]} ${n.getFullYear()}`;
+            } else {
+                bulanLabel.textContent = `${NAMA_BULAN[bulanAktif.bulan - 1]} ${bulanAktif.tahun}`;
+            }
         }
 
         function filterAgenda() {
@@ -286,9 +293,12 @@
 
             rows.forEach((row) => {
                 const cocokCari = q === '' || row.dataset.cari.includes(q);
-                // Agenda tanpa tanggal (data-bulan kosong) selalu ikut tampil, tidak terikat bulan manapun.
-                const cocokBulan = row.dataset.bulan === '' || row.dataset.bulan === bulanFilter;
-                const cocok = cocokCari && cocokBulan;
+                // Agenda tanpa tanggal selalu ikut tampil, tidak terikat bulan/hari manapun.
+                const tanpaTanggal = row.dataset.tanggalIso === '';
+                const cocokWaktu = tanpaTanggal || (modeHariIni
+                    ? row.dataset.tanggalIso === todayIso
+                    : row.dataset.bulan === bulanFilter);
+                const cocok = cocokCari && cocokWaktu;
 
                 row.classList.toggle('d-none', !cocok);
                 if (cocok) {
@@ -301,6 +311,13 @@
         }
 
         function gantiBulan(selisih) {
+            // Navigasi bulan selalu keluar dari mode "Today" (hari spesifik) kembali ke mode bulan.
+            if (modeHariIni) {
+                const n = new Date();
+                bulanAktif = { tahun: n.getFullYear(), bulan: n.getMonth() + 1 };
+            }
+            modeHariIni = false;
+
             let { tahun, bulan } = bulanAktif;
             bulan += selisih;
             if (bulan > 12) { bulan = 1; tahun++; }
@@ -320,8 +337,7 @@
             bulanPrev.addEventListener('click', () => gantiBulan(-1));
             bulanNext.addEventListener('click', () => gantiBulan(1));
             bulanToday.addEventListener('click', () => {
-                const n = new Date();
-                bulanAktif = { tahun: n.getFullYear(), bulan: n.getMonth() + 1 };
+                modeHariIni = true;
                 updateBulanLabel();
                 filterAgenda();
             });
