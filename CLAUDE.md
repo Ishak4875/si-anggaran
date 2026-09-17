@@ -179,12 +179,56 @@ Cc. Bapak Kabalai
 - Status timestamp sourced from `Packet::latest('updated_at')` to show when data was last synced
 - "Bottom performer" = lowest Keu % among PPK below Ditjen SDA Keu target
 
+## Agenda Rapat
+
+**Agenda Rapat** (`/agenda-rapat`, menu "Agenda Rapat", `AgendaRapatController`) is a meeting-schedule CRUD accessible to **all users** (not admin-only). Follows the same per-row-modal pattern as `PpkController` (Tambah/Perbarui/Hapus, color-coded headers).
+
+**Fields** (`agenda_rapats` table): `tanggal_agenda` (date), `nama_agenda` (string, **required** — the only required field), `waktu` (time), `ruangan` (string), `keterangan` (text), `google_event_id` (string, internal — see Google Calendar sync below). `tanggal_agenda`, `waktu`, and `ruangan` are **nullable**; rows missing `tanggal_agenda` are always sorted to the end and always shown regardless of the active month filter (they don't belong to any month).
+
+**Sorting**: descending by `tanggal_agenda` then `waktu` (newest first), via `orderByRaw('tanggal_agenda IS NULL')->orderByDesc('tanggal_agenda')->orderByRaw('waktu IS NULL')->orderByDesc('waktu')` in `AgendaRapatController::index()`.
+
+**Filter UI** (client-side, `v_agenda_rapat.blade.php`, same row as the search box):
+- **Search box**: real-time substring match against a `data-cari` attribute per row (combines `d/m/Y`, `d-m-Y`, and Indonesian `d F Y` date formats + `nama_agenda`, lowercased).
+- **Month nav** (`Today` `<` `>` + Indonesian month-year label, Google Calendar style): defaults to the current month on page load. `<`/`>` step one month at a time (year rolls over correctly). Filtering matches `data-bulan="YYYY-MM"` per row.
+- **"Today" button**: switches to a separate **day-mode** — filters to *only* today's date (not the whole month), label becomes a full date (`17 September 2026`). Clicking `<`/`>` while in day-mode exits back to month-mode, stepping from the month containing today. This mirrors what used to be a standalone "Hari Ini" toggle before month-nav was added.
+- Search and month/day filters combine with AND logic; both are pure client-side JS (no reload).
+
+## Google Calendar Sync (Agenda Rapat)
+
+Every create/update/delete on `AgendaRapat` is pushed to a shared Google Calendar via a **Service Account** (not OAuth2 — a service account was chosen so sync works automatically without per-user login). Handled by `App\Services\GoogleCalendarService`, injected into `AgendaRapatController`.
+
+**Why manual JWT instead of `google/apiclient`**: the official Google API PHP client conflicts with this project's Laravel 11 + PHP 8.2 lock (its `symfony/css-selector` chain needs PHP 8.4+). `GoogleCalendarService` signs its own JWT with `openssl_sign()` (RS256) using the service account's private key, exchanges it for an OAuth2 access token at Google's token endpoint, and calls the Calendar API v3 REST endpoints directly via Laravel's `Http` facade. The access token is cached ~55 minutes (`Cache::remember('google_calendar_access_token', ...)`).
+
+**Config** (`config/services.php` → `google_calendar`):
+```php
+'credentials_path' => env('GOOGLE_CALENDAR_CREDENTIALS_PATH', 'storage/app/google/calendar-service-account.json'),
+'calendar_id'      => env('GOOGLE_CALENDAR_ID'),
+```
+Set in `.env`: `GOOGLE_CALENDAR_CREDENTIALS_PATH` and `GOOGLE_CALENDAR_ID`.
+
+**Credentials file**: the service account JSON key lives at `storage/app/google/calendar-service-account.json` — **never commit this** (it's covered by Laravel's default `storage/app/.gitignore` which ignores everything in that tree). If rotating the service account, just overwrite this file with the new key; no code changes needed.
+
+**Setup checklist if this ever needs to be redone** (e.g. new project, rotated service account):
+1. Create/enable a Google Cloud project + Calendar API, create a Service Account, download its JSON key.
+2. Share the target Google Calendar with the service account's `client_email`, permission **"Make changes to events"** (the "Access permissions for events" / public-sharing section is a *different* setting and does NOT grant this — it must be done via "Share with specific people or groups").
+3. Drop the JSON key at the configured `credentials_path`, set `GOOGLE_CALENDAR_ID` in `.env`.
+4. A service account cannot manage calendar ACL/sharing itself (only the human owner can add/remove sharing entries) — 403 Forbidden if attempted via API.
+
+**Sync behavior** (`GoogleCalendarService::syncAgenda()` / `removeAgenda()`):
+- Agendas without `tanggal_agenda` are skipped (Calendar events require a start/end) — if a previously-synced agenda's date is cleared, its Google event is deleted and `google_event_id` reset to null.
+- Agendas with a `waktu` sync as timed events (1-hour default duration, `Asia/Makassar` timezone); without `waktu` they sync as all-day events.
+- All Calendar API failures are caught and logged (`Log::warning`/`Log::error`), never thrown — a Calendar outage must never block saving an agenda in the app.
+
+## Kelola Revisi Pagu — auto-sort on save
+
+`PaguController::store()` does **not** just delete-and-recreate rows in submission order — it also **re-sorts by `tanggal` before re-creating them** (nulls sort last, via `Carbon::createFromFormat('Y-m-d', ...)->timestamp` comparison in `usort()`). This was a bug fix: originally rows kept whatever order they were submitted in, so inserting/editing a row's date didn't move it to its chronological position until a full page reload re-queried with `orderBy('tanggal')` — the *visible* order on save didn't match. If touching this controller again, keep the sort-before-recreate step.
+
 ## Conventions & gotchas
 
 - Views are named `v_*.blade.php`; layout partials in `resources/views/layout/`. The sidebar (`layout.v_sidebar`) gets its data from a View Composer in `AppServiceProvider::boot()`.
 - **Do not auto-format `.blade.php` files.** A formatter once mangled `@if`/`@else` directives (URL-encoded them) and broke the dashboard. `.vscode/settings.json` disables format-on-save for Blade — keep it.
 - App runs in UTC (`APP_TIMEZONE=UTC`); timestamps are converted to Asia/Makassar (WITA) only at display time in the views.
-- The "manage" pages follow one of two patterns: `PaguController` uses bulk delete-and-recreate on save; `PpkController` and `UserController` use per-row modals (Tambah/Perbarui/Hapus) with color-coded headers (blue/yellow/red). Match the surrounding page's pattern when extending.
+- The "manage" pages follow one of two patterns: `PaguController` uses bulk delete-and-recreate on save (re-sorted by date, see above); `PpkController`, `UserController`, and `AgendaRapatController` use per-row modals (Tambah/Perbarui/Hapus) with color-coded headers (blue/yellow/red). Match the surrounding page's pattern when extending.
 - No test suite beyond Laravel's example tests.
 
 ## Authentication & User Management
