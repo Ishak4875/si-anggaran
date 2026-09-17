@@ -37,14 +37,6 @@
         <div class="card">
             <div class="card-header d-flex flex-wrap align-items-center gap-2">
                 <span class="fw-semibold">Daftar Agenda</span>
-                <div class="input-group input-group-sm ms-auto" style="max-width:320px">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" id="cariAgenda" class="form-control"
-                           placeholder="Cari tanggal / nama agenda..." autocomplete="off">
-                    <button type="button" id="cariReset" class="btn btn-outline-secondary" title="Bersihkan">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
             </div>
             <div class="card-header d-flex flex-wrap align-items-center gap-2 border-top-0">
                 <button type="button" id="bulanToday" class="btn btn-sm btn-outline-secondary">Today</button>
@@ -57,6 +49,14 @@
                     </button>
                 </div>
                 <span id="bulanLabel" class="fw-semibold fs-6 ms-1"></span>
+                <div class="input-group input-group-sm ms-auto" style="max-width:320px">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="cariAgenda" class="form-control"
+                           placeholder="Cari tanggal / nama agenda..." autocomplete="off">
+                    <button type="button" id="cariReset" class="btn btn-outline-secondary" title="Bersihkan">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
