@@ -7,8 +7,8 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#5c7c78" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#26241f" media="(prefers-color-scheme: dark)" />
 
     <link rel="preload" href="{{ asset('template/dist') }}/css/adminlte.css" as="style" />
 
@@ -23,6 +23,7 @@
         crossorigin="anonymous" />
 
     <link rel="stylesheet" href="{{ asset('template/dist') }}/css/adminlte.css" />
+    <link rel="stylesheet" href="{{ asset('css/theme-muted.css') }}" />
 </head>
 <!--end::Head-->
 <!--begin::Body-->

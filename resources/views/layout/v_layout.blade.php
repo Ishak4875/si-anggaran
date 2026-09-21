@@ -9,8 +9,8 @@
     <!--begin::Accessibility Meta Tags-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#5c7c78" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#26241f" media="(prefers-color-scheme: dark)" />
     <!--end::Accessibility Meta Tags-->
 
     <!--begin::Primary Meta Tags-->
@@ -47,6 +47,10 @@
     <!--begin::Required Plugin(AdminLTE)-->
     <link rel="stylesheet" href="{{ asset('template/dist') }}/css/adminlte.css" />
     <!--end::Required Plugin(AdminLTE)-->
+
+    <!--begin::Custom Theme(muted/earthy palette override)-->
+    <link rel="stylesheet" href="{{ asset('css/theme-muted.css') }}" />
+    <!--end::Custom Theme-->
 
     <!-- apexcharts -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"

@@ -1,0 +1,212 @@
+/*
+ * Theme override: earthy/muted palette, tempered contrast, subtle grain texture.
+ * Loaded AFTER adminlte.css in v_layout.blade.php so these variables win.
+ * Intent: avoid the saturated, high-contrast, neon-gradient look typical of
+ * default AI-generated UIs — favor desaturated, warm, low-glare tones instead.
+ */
+
+:root {
+    /* Core palette — desaturated, earthy hues instead of vivid Bootstrap defaults */
+    --bs-primary: #5c7c78;
+    --bs-primary-rgb: 92, 124, 120;
+    --bs-secondary: #8a7f6f;
+    --bs-secondary-rgb: 138, 127, 111;
+    --bs-success: #6b8a5e;
+    --bs-success-rgb: 107, 138, 94;
+    --bs-info: #6f8fa3;
+    --bs-info-rgb: 111, 143, 163;
+    --bs-warning: #b8924f;
+    --bs-warning-rgb: 184, 146, 79;
+    --bs-danger: #a85a45;
+    --bs-danger-rgb: 168, 90, 69;
+    --bs-light: #f1ede4;
+    --bs-light-rgb: 241, 237, 228;
+    --bs-dark: #35322c;
+    --bs-dark-rgb: 53, 50, 44;
+
+    /* Body surface: warm off-white instead of stark white, softened text instead of pure black */
+    --bs-body-color: #3a352e;
+    --bs-body-color-rgb: 58, 53, 46;
+    --bs-body-bg: #f6f3ec;
+    --bs-body-bg-rgb: 246, 243, 236;
+    --bs-secondary-color: #5a5448;
+    --bs-secondary-color-rgb: 90, 84, 72;
+    --bs-secondary-bg: #e8e2d4;
+    --bs-secondary-bg-rgb: 232, 226, 212;
+    --bs-tertiary-color: #6b6458;
+    --bs-tertiary-bg: #efe9dd;
+    --bs-tertiary-bg-rgb: 239, 233, 221;
+
+    --bs-border-color: #d8d0bf;
+    --bs-link-color: #4d6a67;
+    --bs-link-color-rgb: 77, 106, 103;
+    --bs-link-hover-color: #3c5350;
+    --bs-link-hover-color-rgb: 60, 83, 80;
+
+    /* Table + focus ring follow the same muted primary instead of Bootstrap's bright blue */
+    --bs-emphasis-color: #2b2822;
+
+    /* <code> tags default to a bright pink in Bootstrap — swap for a muted rust tone */
+    --bs-code-color: #a15a42;
+
+    /* Hover/active shades for each hue, used by the component overrides below
+       (Bootstrap's compiled .btn-*/.card-* rules hardcode their own colors at
+       build time instead of referencing --bs-primary etc., so those need
+       explicit overrides too — plain root-variable overrides aren't enough). */
+    --bs-primary-hover: #4f6b67;
+    --bs-primary-active: #465c59;
+    --bs-secondary-hover: #786e60;
+    --bs-secondary-active: #6a6153;
+    --bs-success-hover: #5c7851;
+    --bs-success-active: #506745;
+    --bs-info-hover: #607c8e;
+    --bs-info-active: #536c7c;
+    --bs-warning-hover: #9e7d44;
+    --bs-warning-active: #8a6c3b;
+    --bs-danger-hover: #8f4d3b;
+    --bs-danger-active: #7c4333;
+}
+
+[data-bs-theme=dark] {
+    --bs-primary: #86a49f;
+    --bs-primary-rgb: 134, 164, 159;
+    --bs-secondary: #a89c89;
+    --bs-secondary-rgb: 168, 156, 137;
+    --bs-success: #8aab7a;
+    --bs-success-rgb: 138, 171, 122;
+    --bs-info: #93b2c4;
+    --bs-info-rgb: 147, 178, 196;
+    --bs-warning: #cca96a;
+    --bs-warning-rgb: 204, 169, 106;
+    --bs-danger: #c67c65;
+    --bs-danger-rgb: 198, 124, 101;
+    --bs-light: #4a463d;
+    --bs-light-rgb: 74, 70, 61;
+    --bs-dark: #e8e2d4;
+    --bs-dark-rgb: 232, 226, 212;
+
+    --bs-body-color: #dcd6c8;
+    --bs-body-color-rgb: 220, 214, 200;
+    --bs-body-bg: #26241f;
+    --bs-body-bg-rgb: 38, 36, 31;
+    --bs-secondary-color: #c2bcae;
+    --bs-secondary-bg: #322f28;
+    --bs-secondary-bg-rgb: 50, 47, 40;
+    --bs-tertiary-color: #b2ac9e;
+    --bs-tertiary-bg: #2c2a24;
+    --bs-tertiary-bg-rgb: 44, 42, 36;
+
+    --bs-border-color: #46423a;
+    --bs-link-color: #9fbcb7;
+    --bs-link-color-rgb: 159, 188, 183;
+    --bs-link-hover-color: #b6cec9;
+    --bs-link-hover-color-rgb: 182, 206, 201;
+
+    --bs-emphasis-color: #f1ede4;
+    --bs-code-color: #d19477;
+
+    --bs-primary-hover: #76918c;
+    --bs-primary-active: #687f7a;
+    --bs-secondary-hover: #8f8571;
+    --bs-secondary-active: #7c7362;
+    --bs-success-hover: #779468;
+    --bs-success-active: #67805a;
+    --bs-info-hover: #7f9caf;
+    --bs-info-active: #6f889a;
+    --bs-warning-hover: #b3905a;
+    --bs-warning-active: #9c7c4d;
+    --bs-danger-hover: #ac6a55;
+    --bs-danger-active: #955b48;
+}
+
+/* Flatten any bg-gradient utility usage to the plain surface color — no glossy/neon sheen */
+.bg-gradient {
+    background-image: none !important;
+}
+
+/* AdminLTE's .table-light has no dark-mode variant, so it stays paper-white
+   (high contrast glare) on a dark page unless overridden here. */
+[data-bs-theme=dark] .table-light {
+    --bs-table-color: var(--bs-body-color);
+    --bs-table-bg: var(--bs-tertiary-bg);
+    --bs-table-border-color: var(--bs-border-color);
+    --bs-table-striped-bg: var(--bs-secondary-bg);
+    --bs-table-striped-color: var(--bs-body-color);
+    --bs-table-active-bg: var(--bs-secondary-bg);
+    --bs-table-active-color: var(--bs-body-color);
+    --bs-table-hover-bg: var(--bs-secondary-bg);
+    --bs-table-hover-color: var(--bs-body-color);
+}
+
+/*
+ * Bootstrap's compiled .btn-{color} / .btn-outline-{color} rules set their own
+ * --bs-btn-* variables to hardcoded hex values (not var(--bs-primary) etc.),
+ * and AdminLTE's --lte-card-variant-* (used by .card-outline.card-primary,
+ * text-bg-primary, ...) does the same. Re-point them at the muted palette.
+ */
+.btn-primary { --bs-btn-bg: var(--bs-primary); --bs-btn-border-color: var(--bs-primary); --bs-btn-hover-bg: var(--bs-primary-hover); --bs-btn-hover-border-color: var(--bs-primary-hover); --bs-btn-active-bg: var(--bs-primary-active); --bs-btn-active-border-color: var(--bs-primary-active); --bs-btn-disabled-bg: var(--bs-primary); --bs-btn-disabled-border-color: var(--bs-primary); --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb); }
+.btn-secondary { --bs-btn-bg: var(--bs-secondary); --bs-btn-border-color: var(--bs-secondary); --bs-btn-hover-bg: var(--bs-secondary-hover); --bs-btn-hover-border-color: var(--bs-secondary-hover); --bs-btn-active-bg: var(--bs-secondary-active); --bs-btn-active-border-color: var(--bs-secondary-active); --bs-btn-disabled-bg: var(--bs-secondary); --bs-btn-disabled-border-color: var(--bs-secondary); --bs-btn-focus-shadow-rgb: var(--bs-secondary-rgb); }
+.btn-success { --bs-btn-bg: var(--bs-success); --bs-btn-border-color: var(--bs-success); --bs-btn-hover-bg: var(--bs-success-hover); --bs-btn-hover-border-color: var(--bs-success-hover); --bs-btn-active-bg: var(--bs-success-active); --bs-btn-active-border-color: var(--bs-success-active); --bs-btn-disabled-bg: var(--bs-success); --bs-btn-disabled-border-color: var(--bs-success); --bs-btn-focus-shadow-rgb: var(--bs-success-rgb); }
+.btn-info { --bs-btn-bg: var(--bs-info); --bs-btn-border-color: var(--bs-info); --bs-btn-hover-bg: var(--bs-info-hover); --bs-btn-hover-border-color: var(--bs-info-hover); --bs-btn-active-bg: var(--bs-info-active); --bs-btn-active-border-color: var(--bs-info-active); --bs-btn-disabled-bg: var(--bs-info); --bs-btn-disabled-border-color: var(--bs-info); --bs-btn-focus-shadow-rgb: var(--bs-info-rgb); }
+.btn-warning { --bs-btn-bg: var(--bs-warning); --bs-btn-border-color: var(--bs-warning); --bs-btn-hover-bg: var(--bs-warning-hover); --bs-btn-hover-border-color: var(--bs-warning-hover); --bs-btn-active-bg: var(--bs-warning-active); --bs-btn-active-border-color: var(--bs-warning-active); --bs-btn-disabled-bg: var(--bs-warning); --bs-btn-disabled-border-color: var(--bs-warning); --bs-btn-focus-shadow-rgb: var(--bs-warning-rgb); }
+.btn-danger { --bs-btn-bg: var(--bs-danger); --bs-btn-border-color: var(--bs-danger); --bs-btn-hover-bg: var(--bs-danger-hover); --bs-btn-hover-border-color: var(--bs-danger-hover); --bs-btn-active-bg: var(--bs-danger-active); --bs-btn-active-border-color: var(--bs-danger-active); --bs-btn-disabled-bg: var(--bs-danger); --bs-btn-disabled-border-color: var(--bs-danger); --bs-btn-focus-shadow-rgb: var(--bs-danger-rgb); }
+
+.btn-outline-primary { --bs-btn-color: var(--bs-primary); --bs-btn-border-color: var(--bs-primary); --bs-btn-hover-bg: var(--bs-primary); --bs-btn-hover-border-color: var(--bs-primary); --bs-btn-active-bg: var(--bs-primary); --bs-btn-active-border-color: var(--bs-primary); --bs-btn-disabled-color: var(--bs-primary); --bs-btn-disabled-border-color: var(--bs-primary); --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb); --bs-gradient: none; }
+.btn-outline-secondary { --bs-btn-color: var(--bs-secondary); --bs-btn-border-color: var(--bs-secondary); --bs-btn-hover-bg: var(--bs-secondary); --bs-btn-hover-border-color: var(--bs-secondary); --bs-btn-active-bg: var(--bs-secondary); --bs-btn-active-border-color: var(--bs-secondary); --bs-btn-disabled-color: var(--bs-secondary); --bs-btn-disabled-border-color: var(--bs-secondary); --bs-btn-focus-shadow-rgb: var(--bs-secondary-rgb); }
+.btn-outline-success { --bs-btn-color: var(--bs-success); --bs-btn-border-color: var(--bs-success); --bs-btn-hover-bg: var(--bs-success); --bs-btn-hover-border-color: var(--bs-success); --bs-btn-active-bg: var(--bs-success); --bs-btn-active-border-color: var(--bs-success); --bs-btn-disabled-color: var(--bs-success); --bs-btn-disabled-border-color: var(--bs-success); --bs-btn-focus-shadow-rgb: var(--bs-success-rgb); }
+.btn-outline-info { --bs-btn-color: var(--bs-info); --bs-btn-border-color: var(--bs-info); --bs-btn-hover-bg: var(--bs-info); --bs-btn-hover-border-color: var(--bs-info); --bs-btn-active-bg: var(--bs-info); --bs-btn-active-border-color: var(--bs-info); --bs-btn-disabled-color: var(--bs-info); --bs-btn-disabled-border-color: var(--bs-info); --bs-btn-focus-shadow-rgb: var(--bs-info-rgb); }
+.btn-outline-warning { --bs-btn-color: var(--bs-warning); --bs-btn-border-color: var(--bs-warning); --bs-btn-hover-bg: var(--bs-warning); --bs-btn-hover-border-color: var(--bs-warning); --bs-btn-active-bg: var(--bs-warning); --bs-btn-active-border-color: var(--bs-warning); --bs-btn-disabled-color: var(--bs-warning); --bs-btn-disabled-border-color: var(--bs-warning); --bs-btn-focus-shadow-rgb: var(--bs-warning-rgb); }
+.btn-outline-danger { --bs-btn-color: var(--bs-danger); --bs-btn-border-color: var(--bs-danger); --bs-btn-hover-bg: var(--bs-danger); --bs-btn-hover-border-color: var(--bs-danger); --bs-btn-active-bg: var(--bs-danger); --bs-btn-active-border-color: var(--bs-danger); --bs-btn-disabled-color: var(--bs-danger); --bs-btn-disabled-border-color: var(--bs-danger); --bs-btn-focus-shadow-rgb: var(--bs-danger-rgb); }
+
+.card-primary, .bg-primary, .text-bg-primary { --lte-card-variant-bg: var(--bs-primary); --lte-card-variant-bg-rgb: var(--bs-primary-rgb); }
+.card-secondary, .bg-secondary, .text-bg-secondary { --lte-card-variant-bg: var(--bs-secondary); --lte-card-variant-bg-rgb: var(--bs-secondary-rgb); }
+.card-success, .bg-success, .text-bg-success { --lte-card-variant-bg: var(--bs-success); --lte-card-variant-bg-rgb: var(--bs-success-rgb); }
+.card-info, .bg-info, .text-bg-info { --lte-card-variant-bg: var(--bs-info); --lte-card-variant-bg-rgb: var(--bs-info-rgb); }
+.card-warning, .bg-warning, .text-bg-warning { --lte-card-variant-bg: var(--bs-warning); --lte-card-variant-bg-rgb: var(--bs-warning-rgb); }
+.card-danger, .bg-danger, .text-bg-danger { --lte-card-variant-bg: var(--bs-danger); --lte-card-variant-bg-rgb: var(--bs-danger-rgb); }
+
+/* Form focus ring + checked state also hardcode Bootstrap's blue */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+.form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+.page-link {
+    color: var(--bs-primary);
+}
+.page-item.active .page-link {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+/* Slightly softer shadows than the AdminLTE default (less "floating card" glare) */
+.card,
+.shadow,
+.app-header,
+.app-sidebar {
+    box-shadow: 0 1px 3px rgba(43, 40, 34, 0.08) !important;
+}
+
+/* Subtle grain overlay across the whole app — breaks up flat digital-looking surfaces */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+[data-bs-theme=dark] body::before {
+    mix-blend-mode: overlay;
+    opacity: 0.05;
+}
