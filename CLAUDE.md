@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SI-Anggaran — a budget monitoring dashboard for **BWS Sulawesi IV** (Indonesian water-resources agency). It pulls activity-package ("paket") budget/realization data from an external API, groups it into 5 satker (work units), and reports progress per satker and per PPK (commitment officer), with ranking. UI language is Indonesian; AdminLTE 4 template (Bootstrap 5) served from `public/template/`.
 
-Laravel 11, PHP 8.2, MySQL. Blade views (no SPA). Vite builds `resources/` assets but the app currently loads AdminLTE/Bootstrap/ApexCharts from CDN in `resources/views/layout/v_layout.blade.php`.
+Laravel 11, PHP 8.2, MySQL. Blade views (no SPA). Vite builds `resources/` assets but the app currently loads AdminLTE/Bootstrap/ApexCharts from CDN in `resources/views/layout/v_layout.blade.php`, plus a local `public/css/theme-muted.css` override (not Vite-built) for the app's muted color palette — see "Theme / visual styling" below.
 
 ## Commands
 
@@ -222,6 +222,19 @@ Set in `.env`: `GOOGLE_CALENDAR_CREDENTIALS_PATH` and `GOOGLE_CALENDAR_ID`.
 ## Kelola Revisi Pagu — auto-sort on save
 
 `PaguController::store()` does **not** just delete-and-recreate rows in submission order — it also **re-sorts by `tanggal` before re-creating them** (nulls sort last, via `Carbon::createFromFormat('Y-m-d', ...)->timestamp` comparison in `usort()`). This was a bug fix: originally rows kept whatever order they were submitted in, so inserting/editing a row's date didn't move it to its chronological position until a full page reload re-queried with `orderBy('tanggal')` — the *visible* order on save didn't match. If touching this controller again, keep the sort-before-recreate step.
+
+## Theme / visual styling
+
+`public/css/theme-muted.css` overrides AdminLTE/Bootstrap's default vivid blue-and-primary-color palette with a muted, earthy one (desaturated teal, sage, ochre, rust, warm taupe; warm off-white/charcoal surfaces instead of pure white/black; flattened `.bg-gradient`; a barely-visible SVG-noise texture overlay). It's a deliberate design choice — don't "fix" the colors back toward Bootstrap defaults without checking with the user first.
+
+**Loaded in both layouts** (`v_layout.blade.php` and the separate `v_auth_layout.blade.php` used by the login/register pages), right after `adminlte.css`, as a plain `<link>` — **not** built through Vite. (`resources/css/app.css` is a registered-but-empty Vite entry point; it isn't used for this.)
+
+**Why overriding `:root` custom properties alone isn't enough**: Bootstrap's *compiled* CSS bakes hex colors directly into component-level variables at build time instead of referencing the root ones — e.g. `.btn-primary` sets `--bs-btn-bg: #0d6efd` (not `var(--bs-primary)`), and AdminLTE's `--lte-card-variant-bg`/`--lte-card-variant-color` (used by `.card-outline.card-*` and `text-bg-*`) do the same. `theme-muted.css` therefore re-declares those component variables per color (primary/secondary/success/info/warning/danger) to point at the new palette, on top of the root-level overrides. If you add a new AdminLTE/Bootstrap component variant and its color looks wrong despite the root vars being right, this is almost certainly why — check what hardcoded value the compiled `adminlte.css` gives that class before assuming the override didn't load.
+
+**Known component-specific fixes already baked in** (useful precedent if similar issues turn up elsewhere):
+- `.text-bg-info` / `.text-bg-warning` are forced to white text — Bootstrap hardcodes black for these two (they're normally bright yellow/cyan), but this theme's info/warning are dark/muted enough that white reads better.
+- `.table-light` has no dark-mode variant in AdminLTE at all, so without an override it stays paper-white (jarring against a dark page) — overridden under `[data-bs-theme=dark]`.
+- `<code>` tags default to Bootstrap's hot-pink (`--bs-code-color: #d63384`) — overridden to a muted rust tone.
 
 ## Conventions & gotchas
 
