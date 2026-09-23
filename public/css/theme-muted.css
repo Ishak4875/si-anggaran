@@ -161,9 +161,16 @@
 .card-primary, .bg-primary, .text-bg-primary { --lte-card-variant-bg: var(--bs-primary); --lte-card-variant-bg-rgb: var(--bs-primary-rgb); }
 .card-secondary, .bg-secondary, .text-bg-secondary { --lte-card-variant-bg: var(--bs-secondary); --lte-card-variant-bg-rgb: var(--bs-secondary-rgb); }
 .card-success, .bg-success, .text-bg-success { --lte-card-variant-bg: var(--bs-success); --lte-card-variant-bg-rgb: var(--bs-success-rgb); }
-.card-info, .bg-info, .text-bg-info { --lte-card-variant-bg: var(--bs-info); --lte-card-variant-bg-rgb: var(--bs-info-rgb); }
-.card-warning, .bg-warning, .text-bg-warning { --lte-card-variant-bg: var(--bs-warning); --lte-card-variant-bg-rgb: var(--bs-warning-rgb); }
+.card-info, .bg-info, .text-bg-info { --lte-card-variant-bg: var(--bs-info); --lte-card-variant-bg-rgb: var(--bs-info-rgb); --lte-card-variant-color: #fff; }
+.card-warning, .bg-warning, .text-bg-warning { --lte-card-variant-bg: var(--bs-warning); --lte-card-variant-bg-rgb: var(--bs-warning-rgb); --lte-card-variant-color: #fff; }
 .card-danger, .bg-danger, .text-bg-danger { --lte-card-variant-bg: var(--bs-danger); --lte-card-variant-bg-rgb: var(--bs-danger-rgb); }
+
+/* Bootstrap hardcodes black text on .text-bg-info/.text-bg-warning (they're
+   normally bright/light colors); ours are dark/muted enough for white text. */
+.text-bg-info,
+.text-bg-warning {
+    color: #fff !important;
+}
 
 /* Form focus ring + checked state also hardcode Bootstrap's blue */
 .form-control:focus,
