@@ -37,9 +37,10 @@
                                placeholder="" required />
                         <label for="loginPassword">Password</label>
                     </div>
-                    <div class="input-group-text">
-                        <span class="bi bi-lock-fill"></span>
-                    </div>
+                    <button type="button" class="input-group-text" id="toggleLoginPassword"
+                            aria-label="Tampilkan password" title="Tampilkan password">
+                        <span class="bi bi-eye-fill"></span>
+                    </button>
                 </div>
                 <!--begin::Row-->
                 <div class="row">
@@ -64,4 +65,21 @@
     </div>
 </div>
 <!-- /.login-box -->
+
+<script>
+    (function () {
+        const input = document.getElementById('loginPassword');
+        const toggle = document.getElementById('toggleLoginPassword');
+        const icon = toggle.querySelector('span');
+
+        toggle.addEventListener('click', () => {
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.classList.toggle('bi-eye-fill', !isHidden);
+            icon.classList.toggle('bi-eye-slash-fill', isHidden);
+            toggle.setAttribute('aria-label', isHidden ? 'Sembunyikan password' : 'Tampilkan password');
+            toggle.setAttribute('title', isHidden ? 'Sembunyikan password' : 'Tampilkan password');
+        });
+    })();
+</script>
 @endsection
