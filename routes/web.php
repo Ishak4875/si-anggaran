@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaguController;
 use App\Http\Controllers\PacketsRegularController;
+use App\Http\Controllers\PekerjaanRumahController;
 use App\Http\Controllers\PpkController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/agenda-rapat', [AgendaRapatController::class, 'store'])->name('agenda-rapat.store');
     Route::put('/agenda-rapat/{agendaRapat}', [AgendaRapatController::class, 'update'])->name('agenda-rapat.update');
     Route::delete('/agenda-rapat/{agendaRapat}', [AgendaRapatController::class, 'destroy'])->name('agenda-rapat.destroy');
+
+    Route::get('/pr', [PekerjaanRumahController::class, 'index'])->name('pr.index');
+    Route::post('/pr', [PekerjaanRumahController::class, 'store'])->name('pr.store');
+    Route::put('/pr/{pekerjaanRumah}', [PekerjaanRumahController::class, 'update'])->name('pr.update');
+    Route::delete('/pr/{pekerjaanRumah}', [PekerjaanRumahController::class, 'destroy'])->name('pr.destroy');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');

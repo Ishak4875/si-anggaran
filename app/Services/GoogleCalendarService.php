@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AgendaRapat;
+use App\Models\PekerjaanRumah;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -162,6 +163,83 @@ class GoogleCalendarService
     {
         if ($this->isConfigured() && $agenda->google_event_id) {
             $this->deleteEvent($agenda->google_event_id);
+        }
+    }
+
+    /**
+     * Bangun payload event Google Calendar dari data PR (Pekerjaan Rumah).
+     * Tanpa deadline, PR tidak bisa disinkronkan (Google Calendar wajib punya start/end);
+     * event dibuat sebagai all-day event pada tanggal deadline.
+     */
+    public function buildPekerjaanRumahPayload(PekerjaanRumah $pr): ?array
+    {
+        if (!$pr->deadline) {
+            return null;
+        }
+
+        $tanggal = $pr->deadline->format('Y-m-d');
+        $statusLabel = ['belum' => 'Belum', 'proses' => 'Proses', 'selesai' => 'Selesai'][$pr->status] ?? $pr->status;
+        $deskripsi = trim(
+            ($pr->penanggung_jawab ? "Penanggung Jawab: {$pr->penanggung_jawab}\n" : '')
+            . "Status: {$statusLabel}\n"
+            . ($pr->keterangan ?? '')
+        );
+
+        return [
+            'summary'     => 'PR: ' . $pr->nama_pekerjaan,
+            'description' => $deskripsi ?: null,
+            'start'       => ['date' => $tanggal],
+            'end'         => ['date' => $tanggal],
+        ];
+    }
+
+    /**
+     * Sinkronkan satu PekerjaanRumah ke Google Calendar (create/update otomatis),
+     * lalu simpan google_event_id ke row jika ada perubahan. Aman dipanggil meski
+     * kredensial/config belum siap — kegagalan hanya di-log, tidak melempar exception.
+     */
+    public function syncPekerjaanRumah(PekerjaanRumah $pr): void
+    {
+        if (!$this->isConfigured()) {
+            return;
+        }
+
+        $payload = $this->buildPekerjaanRumahPayload($pr);
+
+        if (!$payload) {
+            // Tidak ada deadline: kalau sebelumnya pernah tersinkron, hapus event lama.
+            if ($pr->google_event_id) {
+                $this->deleteEvent($pr->google_event_id);
+                $pr->update(['google_event_id' => null]);
+            }
+            return;
+        }
+
+        if ($pr->google_event_id) {
+            $ok = $this->updateEvent($pr->google_event_id, $payload);
+            if (!$ok) {
+                // Event mungkin sudah terhapus manual di Google Calendar; buat ulang.
+                $newId = $this->createEvent($payload);
+                if ($newId) {
+                    $pr->update(['google_event_id' => $newId]);
+                }
+            }
+            return;
+        }
+
+        $eventId = $this->createEvent($payload);
+        if ($eventId) {
+            $pr->update(['google_event_id' => $eventId]);
+        }
+    }
+
+    /**
+     * Hapus event Google Calendar terkait PekerjaanRumah (dipanggil sebelum delete row).
+     */
+    public function removePekerjaanRumah(PekerjaanRumah $pr): void
+    {
+        if ($this->isConfigured() && $pr->google_event_id) {
+            $this->deleteEvent($pr->google_event_id);
         }
     }
 

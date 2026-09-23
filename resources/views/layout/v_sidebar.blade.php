@@ -74,13 +74,31 @@
                 </a>
             </li>
 
-            {{-- Agenda Rapat --}}
-            <li class="nav-item">
-                <a href="{{ route('agenda-rapat.index') }}"
-                   class="nav-link {{ request()->routeIs('agenda-rapat.*') ? 'active' : '' }}">
+            {{-- Agenda --}}
+            <li class="nav-item {{ request()->routeIs('agenda-rapat.*') || request()->routeIs('pr.*') ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('agenda-rapat.*') || request()->routeIs('pr.*') ? 'active' : '' }}">
                     <i class="nav-icon bi bi-calendar-event"></i>
-                    <p>Agenda Rapat</p>
+                    <p>
+                        Agenda
+                        <i class="nav-arrow bi bi-chevron-right"></i>
+                    </p>
                 </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                        <a href="{{ route('agenda-rapat.index') }}"
+                           class="nav-link {{ request()->routeIs('agenda-rapat.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-dot"></i>
+                            <p>Agenda Rapat</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('pr.index') }}"
+                           class="nav-link {{ request()->routeIs('pr.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-dot"></i>
+                            <p>PR</p>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
             {{-- Kelola Akun (Super Admin Only) --}}
