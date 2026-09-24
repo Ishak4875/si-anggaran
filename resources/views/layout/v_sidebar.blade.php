@@ -74,12 +74,13 @@
                 </a>
             </li>
 
-            {{-- Agenda --}}
+            {{-- Agenda KPISDA --}}
+            @can('agenda-kpisda')
             <li class="nav-item {{ request()->routeIs('agenda-rapat.*') || request()->routeIs('pr.*') ? 'menu-open' : '' }}">
                 <a href="#" class="nav-link {{ request()->routeIs('agenda-rapat.*') || request()->routeIs('pr.*') ? 'active' : '' }}">
                     <i class="nav-icon bi bi-calendar-event"></i>
                     <p>
-                        Agenda
+                        Agenda KPISDA
                         <i class="nav-arrow bi bi-chevron-right"></i>
                     </p>
                 </a>
@@ -100,6 +101,36 @@
                     </li>
                 </ul>
             </li>
+            @endcan
+
+            {{-- Agenda Kepala Balai --}}
+            @can('agenda-kabalai')
+            <li class="nav-item {{ request()->routeIs('agenda-kepala-balai.*') || request()->routeIs('pr-kepala-balai.*') ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('agenda-kepala-balai.*') || request()->routeIs('pr-kepala-balai.*') ? 'active' : '' }}">
+                    <i class="nav-icon bi bi-calendar-check"></i>
+                    <p>
+                        Agenda Kepala Balai
+                        <i class="nav-arrow bi bi-chevron-right"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                        <a href="{{ route('agenda-kepala-balai.index') }}"
+                           class="nav-link {{ request()->routeIs('agenda-kepala-balai.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-dot"></i>
+                            <p>Agenda Rapat</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('pr-kepala-balai.index') }}"
+                           class="nav-link {{ request()->routeIs('pr-kepala-balai.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-dot"></i>
+                            <p>PR</p>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            @endcan
 
             {{-- Kelola Akun (Super Admin Only) --}}
             @if (Auth::user()->isAdmin())

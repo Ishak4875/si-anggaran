@@ -1,12 +1,12 @@
 @extends('layout.v_layout')
-@section('title', 'PR')
+@section('title', $judul)
 @section('content')
 
 <div class="app-content-header">
     <div class="container-fluid">
         <div class="row align-items-center">
             <div class="col-sm-8">
-                <h3 class="mb-0">Pekerjaan Rumah (PR)</h3>
+                <h3 class="mb-0">{{ $judul }}</h3>
                 <small class="text-secondary">Daftar tindak lanjut / tugas, terurut otomatis berdasarkan deadline.</small>
             </div>
             <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
@@ -129,7 +129,7 @@
 {{-- ============ Modal Tambah ============ --}}
 <div class="modal fade" id="modalTambah" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form method="POST" action="{{ route('pr.store') }}" class="modal-content">
+        <form method="POST" action="{{ route($routePrefix . '.store') }}" class="modal-content">
             @csrf
             <div class="modal-header text-bg-primary">
                 <h5 class="modal-title">Tambah PR</h5>
@@ -237,7 +237,7 @@
 @push('scripts')
 <script>
     (function () {
-        const base = @json(url('pr'));
+        const base = @json(route($routePrefix . '.index'));
 
         // Isi modal Perbarui dari tombol yang diklik
         const modalEdit = document.getElementById('modalEdit');

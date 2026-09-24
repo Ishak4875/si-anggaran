@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\AgendaKepalaBalaiController;
 use App\Http\Controllers\AgendaRapatController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaguController;
 use App\Http\Controllers\PacketsRegularController;
 use App\Http\Controllers\PekerjaanRumahController;
+use App\Http\Controllers\PekerjaanRumahKepalaBalaiController;
 use App\Http\Controllers\PpkController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -38,15 +40,29 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/packets-reguler', [PacketsRegularController::class, 'index'])->name('packets-reguler.index');
 
-    Route::get('/agenda-rapat', [AgendaRapatController::class, 'index'])->name('agenda-rapat.index');
-    Route::post('/agenda-rapat', [AgendaRapatController::class, 'store'])->name('agenda-rapat.store');
-    Route::put('/agenda-rapat/{agendaRapat}', [AgendaRapatController::class, 'update'])->name('agenda-rapat.update');
-    Route::delete('/agenda-rapat/{agendaRapat}', [AgendaRapatController::class, 'destroy'])->name('agenda-rapat.destroy');
+    Route::middleware('can:agenda-kpisda')->group(function () {
+        Route::get('/agenda-rapat', [AgendaRapatController::class, 'index'])->name('agenda-rapat.index');
+        Route::post('/agenda-rapat', [AgendaRapatController::class, 'store'])->name('agenda-rapat.store');
+        Route::put('/agenda-rapat/{agendaRapat}', [AgendaRapatController::class, 'update'])->name('agenda-rapat.update');
+        Route::delete('/agenda-rapat/{agendaRapat}', [AgendaRapatController::class, 'destroy'])->name('agenda-rapat.destroy');
 
-    Route::get('/pr', [PekerjaanRumahController::class, 'index'])->name('pr.index');
-    Route::post('/pr', [PekerjaanRumahController::class, 'store'])->name('pr.store');
-    Route::put('/pr/{pekerjaanRumah}', [PekerjaanRumahController::class, 'update'])->name('pr.update');
-    Route::delete('/pr/{pekerjaanRumah}', [PekerjaanRumahController::class, 'destroy'])->name('pr.destroy');
+        Route::get('/pr', [PekerjaanRumahController::class, 'index'])->name('pr.index');
+        Route::post('/pr', [PekerjaanRumahController::class, 'store'])->name('pr.store');
+        Route::put('/pr/{pekerjaanRumah}', [PekerjaanRumahController::class, 'update'])->name('pr.update');
+        Route::delete('/pr/{pekerjaanRumah}', [PekerjaanRumahController::class, 'destroy'])->name('pr.destroy');
+    });
+
+    Route::middleware('can:agenda-kabalai')->group(function () {
+        Route::get('/agenda-kepala-balai', [AgendaKepalaBalaiController::class, 'index'])->name('agenda-kepala-balai.index');
+        Route::post('/agenda-kepala-balai', [AgendaKepalaBalaiController::class, 'store'])->name('agenda-kepala-balai.store');
+        Route::put('/agenda-kepala-balai/{agendaKepalaBalai}', [AgendaKepalaBalaiController::class, 'update'])->name('agenda-kepala-balai.update');
+        Route::delete('/agenda-kepala-balai/{agendaKepalaBalai}', [AgendaKepalaBalaiController::class, 'destroy'])->name('agenda-kepala-balai.destroy');
+
+        Route::get('/pr-kepala-balai', [PekerjaanRumahKepalaBalaiController::class, 'index'])->name('pr-kepala-balai.index');
+        Route::post('/pr-kepala-balai', [PekerjaanRumahKepalaBalaiController::class, 'store'])->name('pr-kepala-balai.store');
+        Route::put('/pr-kepala-balai/{pekerjaanRumahKepalaBalai}', [PekerjaanRumahKepalaBalaiController::class, 'update'])->name('pr-kepala-balai.update');
+        Route::delete('/pr-kepala-balai/{pekerjaanRumahKepalaBalai}', [PekerjaanRumahKepalaBalaiController::class, 'destroy'])->name('pr-kepala-balai.destroy');
+    });
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');

@@ -1,13 +1,13 @@
 @extends('layout.v_layout')
-@section('title', 'Agenda Rapat')
+@section('title', $judul)
 @section('content')
 
 <div class="app-content-header">
     <div class="container-fluid">
         <div class="row align-items-center">
             <div class="col-sm-8">
-                <h3 class="mb-0">Agenda Rapat</h3>
-                <small class="text-secondary">Daftar agenda rapat, terurut otomatis berdasarkan tanggal.</small>
+                <h3 class="mb-0">{{ $judul }}</h3>
+                <small class="text-secondary">Daftar agenda, terurut otomatis berdasarkan tanggal.</small>
             </div>
             <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
                 <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
@@ -113,7 +113,7 @@
                             @empty
                                 <tr id="barisKosongAwal">
                                     <td colspan="7" class="text-center py-4 text-secondary">
-                                        Belum ada agenda rapat. Klik <strong>Tambah</strong> untuk menambah.
+                                        Belum ada agenda. Klik <strong>Tambah</strong> untuk menambah.
                                     </td>
                                 </tr>
                             @endforelse
@@ -134,10 +134,10 @@
 {{-- ============ Modal Tambah ============ --}}
 <div class="modal fade" id="modalTambah" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form method="POST" action="{{ route('agenda-rapat.store') }}" class="modal-content">
+        <form method="POST" action="{{ route($routePrefix . '.store') }}" class="modal-content">
             @csrf
             <div class="modal-header text-bg-primary">
-                <h5 class="modal-title">Tambah Agenda Rapat</h5>
+                <h5 class="modal-title">Tambah {{ $judul }}</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body">
@@ -177,7 +177,7 @@
             @csrf
             @method('PUT')
             <div class="modal-header text-bg-warning">
-                <h5 class="modal-title">Perbarui Agenda Rapat</h5>
+                <h5 class="modal-title">Perbarui {{ $judul }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body">
@@ -217,7 +217,7 @@
             @csrf
             @method('DELETE')
             <div class="modal-header text-bg-danger">
-                <h5 class="modal-title" id="hapusJudul">Hapus Agenda Rapat</h5>
+                <h5 class="modal-title" id="hapusJudul">Hapus {{ $judul }}</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body">
@@ -234,7 +234,7 @@
 @push('scripts')
 <script>
     (function () {
-        const base = @json(url('agenda-rapat'));
+        const base = @json(route($routePrefix . '.index'));
 
         // Isi modal Perbarui dari tombol yang diklik
         const modalEdit = document.getElementById('modalEdit');
@@ -253,7 +253,7 @@
         modalHapus.addEventListener('show.bs.modal', (ev) => {
             const b = ev.relatedTarget;
             document.getElementById('formHapus').action = base + '/' + b.dataset.id;
-            document.getElementById('hapusJudul').textContent = b.dataset.nama || 'Hapus Agenda Rapat';
+            document.getElementById('hapusJudul').textContent = b.dataset.nama || @json('Hapus ' . $judul);
         });
 
         // Pencarian real-time berdasarkan tanggal / nama agenda, ditambah navigasi filter bulan

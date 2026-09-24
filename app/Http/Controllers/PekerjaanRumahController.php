@@ -34,6 +34,8 @@ class PekerjaanRumahController extends Controller
     public function index(): View
     {
         return view('v_pekerjaan_rumah', [
+            'judul'       => 'Pekerjaan Rumah (PR)',
+            'routePrefix' => 'pr',
             // Deadline terdekat dulu; baris tanpa deadline (opsional) tetap di akhir.
             'pekerjaans' => PekerjaanRumah::orderByRaw('deadline IS NULL')
                 ->orderBy('deadline')

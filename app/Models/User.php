@@ -50,4 +50,14 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function canSeeAgendaKpisda(): bool
+    {
+        return $this->isAdmin() || $this->agenda_group !== 'kabalai';
+    }
+
+    public function canSeeAgendaKabalai(): bool
+    {
+        return $this->isAdmin() || $this->agenda_group === 'kabalai';
+    }
 }
