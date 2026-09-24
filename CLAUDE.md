@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SI-Anggaran — a budget monitoring dashboard for **BWS Sulawesi IV** (Indonesian water-resources agency). It pulls activity-package ("paket") budget/realization data from an external API, groups it into 5 satker (work units), and reports progress per satker and per PPK (commitment officer), with ranking. UI language is Indonesian; AdminLTE 4 template (Bootstrap 5) served from `public/template/`.
 
-Laravel 11, PHP 8.2, MySQL. Blade views (no SPA). Vite builds `resources/` assets but the app currently loads AdminLTE/Bootstrap/ApexCharts from CDN in `resources/views/layout/v_layout.blade.php`, plus a local `public/css/theme-muted.css` override (not Vite-built) for the app's muted color palette — see "Theme / visual styling" below.
+Laravel 12 (upgraded from 11; no app code changes were needed), PHP 8.2, MySQL. Blade views (no SPA). Vite builds `resources/` assets but the app currently loads AdminLTE/Bootstrap/ApexCharts from CDN in `resources/views/layout/v_layout.blade.php`, plus a local `public/css/theme-muted.css` override (not Vite-built) for the app's muted color palette — see "Theme / visual styling" below.
 
 ## Commands
 
@@ -23,7 +23,9 @@ npm run dev                            # Vite dev (only if editing resources/ as
 npm run build                          # Vite production build
 ```
 
-Database is **MySQL `db_anggaran`** (Laragon). Laragon ships MariaDB, which rejects Laravel 11's default `utf8mb4_0900_ai_ci` — `.env` therefore sets `DB_COLLATION=utf8mb4_unicode_ci` (keep it).
+Database is **MySQL `db_anggaran`** (Laragon runs MySQL 5.7). Like MariaDB, MySQL 5.7 has no `utf8mb4_0900_ai_ci` collation (MySQL 8 only) — `.env` therefore sets `DB_COLLATION=utf8mb4_unicode_ci` (keep it).
+
+`tests/Feature/ExampleTest.php` (Laravel's stock example) **fails by design**: it expects `GET /` → 200, but `/` is behind `auth` so a guest gets 302. It's not a regression signal; fix or delete it before wiring up CI.
 
 ## Data flow (the core to understand)
 
@@ -50,6 +52,8 @@ External API (`config/services.php` → `sihka`, credentials in `.env`: `SIHKA_U
 - **Ranking** (dashboard "Progres per PPK & Peringkat") is by Keu % descending — satkers ranked among 5, PPKs ranked among all PPKs.
 
 `DashboardController::buildPpkProgres()` computes the hierarchical satker→PPK table; `buildUnmappedPpk()` detects packets with `ppk_id = null` grouped per satker (shown at the bottom of the dashboard). Monetary values in that table are displayed in thousands ("Rp.000").
+
+The dashboard also shows a static, non-dismissible reminder banner at the very top (`v_dashboard.blade.php`): sync 15 minutes after the last iemon save, e.g. 09:15 / 13:15 / 17:15 WITA. It's plain text, not tied to any scheduler.
 
 ## Daftar Paket Reguler
 
@@ -179,11 +183,26 @@ Cc. Bapak Kabalai
 - Status timestamp sourced from `Packet::latest('updated_at')` to show when data was last synced
 - "Bottom performer" = lowest Keu % among PPK below Ditjen SDA Keu target
 
-## Agenda Rapat
+## Agenda (KPISDA & Kepala Balai)
 
-**Agenda Rapat** (`/agenda-rapat`, menu "Agenda Rapat", `AgendaRapatController`) is a meeting-schedule CRUD accessible to **all users** (not admin-only). Follows the same per-row-modal pattern as `PpkController` (Tambah/Perbarui/Hapus, color-coded headers).
+The sidebar has two agenda dropdowns, each with an "Agenda Rapat" and a "PR" (Pekerjaan Rumah — follow-up/task tracker) page. All four pages are separate tables:
 
-**Fields** (`agenda_rapats` table): `tanggal_agenda` (date), `nama_agenda` (string, **required** — the only required field), `waktu` (time), `ruangan` (string), `keterangan` (text), `google_event_id` (string, internal — see Google Calendar sync below). `tanggal_agenda`, `waktu`, and `ruangan` are **nullable**; rows missing `tanggal_agenda` are always sorted to the end and always shown regardless of the active month filter (they don't belong to any month).
+| Sidebar | Route | Controller | Table | Google Calendar |
+|---|---|---|---|---|
+| Agenda KPISDA → Agenda Rapat | `/agenda-rapat` | `AgendaRapatController` | `agenda_rapats` | synced |
+| Agenda KPISDA → PR | `/pr` | `PekerjaanRumahController` | `pekerjaan_rumahs` | synced (deadline) |
+| Agenda Kepala Balai → Agenda Rapat | `/agenda-kepala-balai` | `AgendaKepalaBalaiController` | `agenda_kepala_balais` | **never** |
+| Agenda Kepala Balai → PR | `/pr-kepala-balai` | `PekerjaanRumahKepalaBalaiController` | `pekerjaan_rumah_kepala_balais` | **never** |
+
+All four use the per-row-modal pattern (Tambah/Perbarui/Hapus, color-coded headers) like `PpkController`.
+
+**Shared views**: the two Agenda Rapat pages share `v_agenda_rapat.blade.php`, and the two PR pages share `v_pekerjaan_rumah.blade.php`. Each controller's `index()` passes `$judul` (page/modal titles) and `$routePrefix` (e.g. `'agenda-kepala-balai'`); the views build the form actions and the JS base URL from `route($routePrefix . '.store' / '.index')`. Never hardcode a route name or title inside these two views — it would silently send one page's forms to the other page's table.
+
+**Access control is by role** (see Authentication below): `admin` sees both dropdowns, `kpisda` only Agenda KPISDA, `kabalai` only Agenda Kepala Balai, plain `user` neither. Enforced twice: Gates `agenda-kpisda` / `agenda-kabalai` (defined in `AppServiceProvider::boot()`, delegating to `User::canSeeAgendaKpisda()` / `canSeeAgendaKabalai()`) wrap each route group via `middleware('can:...')` (403 on direct URL access), and the sidebar wraps each dropdown in `@can`. Keep both in sync when adding an agenda page.
+
+### Agenda Rapat pages
+
+**Fields** (`agenda_rapats` table; `agenda_kepala_balais` is identical minus `google_event_id`): `tanggal_agenda` (date), `nama_agenda` (string, **required** — the only required field), `waktu` (time), `ruangan` (string), `keterangan` (text), `google_event_id` (string, internal — see Google Calendar sync below). `tanggal_agenda`, `waktu`, and `ruangan` are **nullable**; rows missing `tanggal_agenda` are always sorted to the end and always shown regardless of the active month filter (they don't belong to any month).
 
 **Sorting**: descending by `tanggal_agenda` then `waktu` (newest first), via `orderByRaw('tanggal_agenda IS NULL')->orderByDesc('tanggal_agenda')->orderByRaw('waktu IS NULL')->orderByDesc('waktu')` in `AgendaRapatController::index()`.
 
@@ -193,11 +212,15 @@ Cc. Bapak Kabalai
 - **"Today" button**: switches to a separate **day-mode** — filters to *only* today's date (not the whole month), label becomes a full date (`17 September 2026`). Clicking `<`/`>` while in day-mode exits back to month-mode, stepping from the month containing today. This mirrors what used to be a standalone "Hari Ini" toggle before month-nav was added.
 - Search and month/day filters combine with AND logic; both are pure client-side JS (no reload).
 
-## Google Calendar Sync (Agenda Rapat)
+### PR (Pekerjaan Rumah) pages
 
-Every create/update/delete on `AgendaRapat` is pushed to a shared Google Calendar via a **Service Account** (not OAuth2 — a service account was chosen so sync works automatically without per-user login). Handled by `App\Services\GoogleCalendarService`, injected into `AgendaRapatController`.
+**Fields** (`pekerjaan_rumahs`; `pekerjaan_rumah_kepala_balais` is identical minus `google_event_id`): `nama_pekerjaan` (required), `penanggung_jawab`, `deadline` (date), `status` (enum `belum`/`proses`/`selesai`, default `belum` — `PekerjaanRumah::STATUS_OPTIONS`, also used to validate the Kepala Balai PR), `keterangan`. Sorted by nearest `deadline` first, rows without a deadline last. Status renders as a colored badge (secondary/warning/success). Client-side search matches `nama_pekerjaan` + `penanggung_jawab`; no month filter.
 
-**Why manual JWT instead of `google/apiclient`**: the official Google API PHP client conflicts with this project's Laravel 11 + PHP 8.2 lock (its `symfony/css-selector` chain needs PHP 8.4+). `GoogleCalendarService` signs its own JWT with `openssl_sign()` (RS256) using the service account's private key, exchanges it for an OAuth2 access token at Google's token endpoint, and calls the Calendar API v3 REST endpoints directly via Laravel's `Http` facade. The access token is cached ~55 minutes (`Cache::remember('google_calendar_access_token', ...)`).
+## Google Calendar Sync (KPISDA agenda only)
+
+Every create/update/delete on `AgendaRapat` and `PekerjaanRumah` is pushed to a shared Google Calendar via a **Service Account** (not OAuth2 — a service account was chosen so sync works automatically without per-user login). Handled by `App\Services\GoogleCalendarService`, injected into `AgendaRapatController` and `PekerjaanRumahController`. The Kepala Balai controllers deliberately do **not** use it.
+
+**Why manual JWT instead of `google/apiclient`**: the official Google API PHP client conflicts with this project's PHP 8.2 lock (its `symfony/css-selector` chain needs PHP 8.4+). `GoogleCalendarService` signs its own JWT with `openssl_sign()` (RS256) using the service account's private key, exchanges it for an OAuth2 access token at Google's token endpoint, and calls the Calendar API v3 REST endpoints directly via Laravel's `Http` facade. The access token is cached ~55 minutes (`Cache::remember('google_calendar_access_token', ...)`).
 
 **Config** (`config/services.php` → `google_calendar`):
 ```php
@@ -217,7 +240,11 @@ Set in `.env`: `GOOGLE_CALENDAR_CREDENTIALS_PATH` and `GOOGLE_CALENDAR_ID`.
 **Sync behavior** (`GoogleCalendarService::syncAgenda()` / `removeAgenda()`):
 - Agendas without `tanggal_agenda` are skipped (Calendar events require a start/end) — if a previously-synced agenda's date is cleared, its Google event is deleted and `google_event_id` reset to null.
 - Agendas with a `waktu` sync as timed events (1-hour default duration, `Asia/Makassar` timezone); without `waktu` they sync as all-day events.
+- PR deadlines (`syncPekerjaanRumah()` / `removePekerjaanRumah()`) sync as **all-day** events titled `PR: <nama_pekerjaan>`, with penanggung jawab / status / keterangan in the description; same skip-and-clean-up rule when `deadline` is empty.
 - All Calendar API failures are caught and logged (`Log::warning`/`Log::error`), never thrown — a Calendar outage must never block saving an agenda in the app.
+- **Gotcha — silent skip**: `isConfigured()` returns early with **no log at all** when `GOOGLE_CALENDAR_ID` is empty or the credentials file is missing. This is exactly what happens on a fresh deploy: the JSON key is git-ignored and `.env.example` leaves `GOOGLE_CALENDAR_ID` blank, so saving works but nothing reaches the calendar. Check these two first when "sync stopped working".
+
+**Notifications to other people**: sharing the calendar ("Make changes and see all event details") does not notify anyone. Each person must add the calendar to their own Google account and enable *Settings → [calendar] → Other notifications → New/Changed/Canceled events → Email* **in their own account** — the owner's settings only affect the owner. Adding people as event *attendees* is not an option: a service account gets 403 inviting attendees without Domain-Wide Delegation, which needs Google Workspace (not @gmail.com). If app-controlled notifications are ever needed, send them from Laravel Mail instead (note `MAIL_MAILER=log` locally).
 
 ## Kelola Revisi Pagu — auto-sort on save
 
@@ -225,7 +252,9 @@ Set in `.env`: `GOOGLE_CALENDAR_CREDENTIALS_PATH` and `GOOGLE_CALENDAR_ID`.
 
 ## Theme / visual styling
 
-`public/css/theme-muted.css` overrides AdminLTE/Bootstrap's default vivid blue-and-primary-color palette with a muted, earthy one (desaturated teal, sage, ochre, rust, warm taupe; warm off-white/charcoal surfaces instead of pure white/black; flattened `.bg-gradient`; a barely-visible SVG-noise texture overlay). It's a deliberate design choice — don't "fix" the colors back toward Bootstrap defaults without checking with the user first.
+`public/css/theme-muted.css` overrides AdminLTE/Bootstrap's default vivid blue-and-primary-color palette with a muted, earthy one (desaturated teal, sage, ochre, rust, warm taupe; charcoal instead of pure black in dark mode; flattened `.bg-gradient`; a barely-visible SVG-noise texture overlay). It's a deliberate design choice — don't "fix" the colors back toward Bootstrap defaults without checking with the user first.
+
+**Page background is pure white** in light mode (`--bs-body-bg: #ffffff`, per user request — it used to be a warm tan `#f6f3ec`). Both layouts' `<body>` use the `bg-body` class so they follow that variable; don't reintroduce `bg-body-tertiary` / `bg-body-secondary` on `<body>`, those resolve to the tan surface colors. The sidebar stays dark in both modes (it's forced with `data-bs-theme="dark"`).
 
 **Loaded in both layouts** (`v_layout.blade.php` and the separate `v_auth_layout.blade.php` used by the login/register pages), right after `adminlte.css`, as a plain `<link>` — **not** built through Vite. (`resources/css/app.css` is a registered-but-empty Vite entry point; it isn't used for this.)
 
@@ -235,27 +264,34 @@ Set in `.env`: `GOOGLE_CALENDAR_CREDENTIALS_PATH` and `GOOGLE_CALENDAR_ID`.
 - `.text-bg-info` / `.text-bg-warning` are forced to white text — Bootstrap hardcodes black for these two (they're normally bright yellow/cyan), but this theme's info/warning are dark/muted enough that white reads better.
 - `.table-light` has no dark-mode variant in AdminLTE at all, so without an override it stays paper-white (jarring against a dark page) — overridden under `[data-bs-theme=dark]`.
 - `<code>` tags default to Bootstrap's hot-pink (`--bs-code-color: #d63384`) — overridden to a muted rust tone.
+- `.btn-primary` hovers to its **outline look** (transparent fill, primary-colored text and border, matching `.btn-outline-primary`), per user request. Other solid button colors still darken on hover.
+
+**Never write `*/` inside a CSS comment** in this file (e.g. `.btn-*/.card-*`). It closes the comment early; the rest of the sentence becomes invalid CSS and error recovery silently swallows the *next* declaration. That once deleted `--bs-primary-hover`, so every primary button hovered to a transparent fill with white text — invisible on the white page. No console error is shown; to debug, compare `getComputedStyle(document.documentElement).getPropertyValue('--var')` against the file.
 
 ## Conventions & gotchas
 
 - Views are named `v_*.blade.php`; layout partials in `resources/views/layout/`. The sidebar (`layout.v_sidebar`) gets its data from a View Composer in `AppServiceProvider::boot()`.
 - **Do not auto-format `.blade.php` files.** A formatter once mangled `@if`/`@else` directives (URL-encoded them) and broke the dashboard. `.vscode/settings.json` disables format-on-save for Blade — keep it.
 - App runs in UTC (`APP_TIMEZONE=UTC`); timestamps are converted to Asia/Makassar (WITA) only at display time in the views.
-- The "manage" pages follow one of two patterns: `PaguController` uses bulk delete-and-recreate on save (re-sorted by date, see above); `PpkController`, `UserController`, and `AgendaRapatController` use per-row modals (Tambah/Perbarui/Hapus) with color-coded headers (blue/yellow/red). Match the surrounding page's pattern when extending.
-- No test suite beyond Laravel's example tests.
+- The "manage" pages follow one of two patterns: `PaguController` uses bulk delete-and-recreate on save (re-sorted by date, see above); `PpkController`, `UserController`, and the four agenda controllers use per-row modals (Tambah/Perbarui/Hapus) with color-coded headers (blue/yellow/red). Match the surrounding page's pattern when extending.
+- No test suite beyond Laravel's example tests (and the feature one fails by design — see Commands).
 
 ## Authentication & User Management
 
 **Login & Register** are implemented with Laravel's built-in auth:
-- **Login** (`GET /login`, `POST /login`, AuthController): public login page (accessible to unauthenticated users).
+- **Login** (`GET /login`, `POST /login`, AuthController): public login page (accessible to unauthenticated users). The password field has a show/hide eye toggle (inline script in `v_auth_login.blade.php`; `v_auth_layout` has no `@stack('scripts')`).
 - **Logout** (`POST /logout`, AuthController): submits CSRF token as form button in profile dropdown.
 - **Register** (`GET /register`, `POST /register`, AuthController): routes still exist but **not accessible from UI**. User creation is exclusively managed by super admin via "Kelola Akun" modal (see below).
 - All dashboard/data routes require `middleware('auth')`; unauthenticated access redirects to `/login` (configured in `bootstrap/app.php`).
 
-**User roles** (`users.role` enum: `'user'` or `'admin'`):
-- `'admin'` = super admin; can access the "Kelola Akun" menu and manage all user accounts (create/edit/delete).
-- `'user'` = regular user; can use the dashboard and data-management pages but NOT access user management.
+**User roles** (`users.role` enum: `user`, `admin`, `kpisda`, `kabalai`; display labels in `User::ROLES`, which also drives the Kelola Akun `<select>`s and the `in:` validation — add a role there, not in each view):
+- `'admin'` (label "Super Admin") = can access "Kelola Akun" and "Daftar Paket Reguler", manage all accounts, and sees **both** agenda dropdowns.
+- `'kpisda'` = sees Agenda KPISDA only.
+- `'kabalai'` (label "Kepala Balai") = sees Agenda Kepala Balai only.
+- `'user'` = dashboard and data-management pages, **no** agenda menus.
+- Only `admin` counts as admin (`User::isAdmin()`); `kpisda`/`kabalai` behave like `user` everywhere except the agenda menus.
 - Menu "Kelola Akun" is hidden in sidebar for non-admin users; direct access to `/users*` routes returns 403 Forbidden (checked in `UserController` via private `authorize()` method).
+- History: agenda access briefly used a `users.agenda_group` column (migration `..._add_agenda_group_to_users_table`, which also hard-coded `kabalai@gmail.com`). Migration `..._replace_agenda_group_with_roles` replaced it: it widens the role enum, maps non-admin accounts from their old group to the matching role (so nobody lost access), then drops the column. Both migrations must stay in order — hosting runs them back to back.
 
 **User Management** (`UserController`, `/users` page, `v_user_index.blade.php`, admin-only) — **exclusive method for creating/managing users**; no public registration. Follows the same modal pattern as `PpkController`:
 - **Tambah (Add)** modal: blue header (`text-bg-primary`), creates new user with name/email/password/role (requires admin).
@@ -267,6 +303,20 @@ Set in `.env`: `GOOGLE_CALENDAR_CREDENTIALS_PATH` and `GOOGLE_CALENDAR_ID`.
 
 **Default accounts** (check `database/migrations/..._add_role_to_users_table.php`):
 - `Admin BWS` (admin@bws4.test, password: check notes) — super admin (role='admin')
-- `KPISDA` (kpisda.bwssiv@gmail.com, password: admin123) — regular user (role='user')
+- `KPISDA` (kpisda.bwssiv@gmail.com, password: admin123) — role `kpisda`
+- `Kepala Balai` (kabalai@gmail.com) — role `kabalai`
 
 User model: `User::isAdmin()` checks if `$user->role === 'admin'`. Auth profile dropdown in header shows logged-in user's name and "Member since [month]"; "Sign out" button submits a POST form to `/logout`.
+
+## Deployment (shared hosting)
+
+Production runs on shared hosting (SSH user `u396879625`, app in `public_html`). The **repo root is the web root** — there is no `public/` docroot there — so the repo carries root-level copies of `public/index.php` (paths adjusted to `__DIR__ . '/vendor'`, `'/bootstrap'`, `'/storage'`) and `public/.htaccess`. If `public/index.php` changes, update the root copy too.
+
+After pulling new code on the server:
+```bash
+php artisan migrate          # answer "yes" to the production prompt
+php artisan optimize:clear   # routes/views/config may be cached
+```
+Pending migrations are easy to miss — `php artisan migrate:status` once showed four `Pending` rows, which is why the Kepala Balai account saw the wrong agenda. Things that are **not** in git and must be placed on the server by hand: `.env` (incl. `GOOGLE_CALENDAR_ID`) and `storage/app/google/calendar-service-account.json`. After role changes ship, check each account's role in Kelola Akun.
+
+**Security caveat**: the root `.htaccess` only rewrites requests for files that don't exist (`!-f`), and nothing denies dotfiles or `storage/`. Unless the host blocks them itself, `/.env` and `/storage/app/google/calendar-service-account.json` can be downloaded directly. Verify from outside and add deny rules (or point the docroot at `public/`) before assuming they're private.
