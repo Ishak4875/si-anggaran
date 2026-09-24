@@ -11,6 +11,13 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    public const ROLES = [
+        'user'    => 'User',
+        'kpisda'  => 'KPISDA',
+        'kabalai' => 'Kepala Balai',
+        'admin'   => 'Super Admin',
+    ];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -53,11 +60,11 @@ class User extends Authenticatable
 
     public function canSeeAgendaKpisda(): bool
     {
-        return $this->isAdmin() || $this->agenda_group !== 'kabalai';
+        return in_array($this->role, ['admin', 'kpisda'], true);
     }
 
     public function canSeeAgendaKabalai(): bool
     {
-        return $this->isAdmin() || $this->agenda_group === 'kabalai';
+        return in_array($this->role, ['admin', 'kabalai'], true);
     }
 }

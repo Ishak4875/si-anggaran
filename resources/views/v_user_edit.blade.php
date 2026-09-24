@@ -46,8 +46,9 @@
                             <label for="role" class="form-label">Role</label>
                             <select id="role" name="role" class="form-select @error('role') is-invalid @enderror"
                                 required>
-                                <option value="user" {{ old('role', $user->role) === 'user' ? 'selected' : '' }}>User Biasa</option>
-                                <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Super Admin</option>
+                                @foreach (\App\Models\User::ROLES as $value => $label)
+                                    <option value="{{ $value }}" {{ old('role', $user->role) === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
                             </select>
                             @error('role')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>

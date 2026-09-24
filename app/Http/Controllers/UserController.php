@@ -38,7 +38,7 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', Password::defaults()],
-            'role'     => ['required', 'in:user,admin'],
+            'role'     => ['required', 'in:' . implode(',', array_keys(User::ROLES))],
         ]);
 
         User::create([
@@ -63,7 +63,7 @@ class UserController extends Controller
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'role'     => ['required', 'in:user,admin'],
+            'role'     => ['required', 'in:' . implode(',', array_keys(User::ROLES))],
             'password' => ['nullable', Password::defaults()],
         ]);
 

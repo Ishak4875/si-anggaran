@@ -44,11 +44,14 @@
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->email }}</td>
                                     <td>
-                                        @if ($user->isAdmin())
-                                            <span class="badge bg-danger">Super Admin</span>
-                                        @else
-                                            <span class="badge bg-secondary">User</span>
-                                        @endif
+                                        @php
+                                            $roleBadge = [
+                                                'admin'   => 'bg-danger',
+                                                'kpisda'  => 'bg-primary',
+                                                'kabalai' => 'bg-success',
+                                            ][$user->role] ?? 'bg-secondary';
+                                        @endphp
+                                        <span class="badge {{ $roleBadge }}">{{ \App\Models\User::ROLES[$user->role] ?? $user->role }}</span>
                                     </td>
                                     <td>{{ $user->created_at->translatedFormat('d M Y H:i') }}</td>
                                     <td>
@@ -114,9 +117,11 @@
                     <label class="form-label">Role</label>
                     <select name="role" class="form-select" required>
                         <option value="" disabled selected>-- Pilih Role --</option>
-                        <option value="user">User</option>
-                        <option value="admin">Super Admin</option>
+                        @foreach (\App\Models\User::ROLES as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
                     </select>
+                    <div class="form-text">KPISDA: Agenda KPISDA &middot; Kepala Balai: Agenda Kepala Balai &middot; Super Admin: semua &middot; User: tanpa menu agenda</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -153,9 +158,11 @@
                 <div class="mb-2">
                     <label class="form-label">Role</label>
                     <select name="role" id="editRole" class="form-select" required>
-                        <option value="user">User</option>
-                        <option value="admin">Super Admin</option>
+                        @foreach (\App\Models\User::ROLES as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
                     </select>
+                    <div class="form-text">KPISDA: Agenda KPISDA &middot; Kepala Balai: Agenda Kepala Balai &middot; Super Admin: semua &middot; User: tanpa menu agenda</div>
                 </div>
             </div>
             <div class="modal-footer">
