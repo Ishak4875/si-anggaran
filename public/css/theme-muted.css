@@ -50,10 +50,9 @@
     --bs-code-color: #a15a42;
 
     /* Hover/active shades for each hue, used by the component overrides below
-       (Bootstrap's compiled .btn-*/.card-* rules hardcode their own colors at
+       (Bootstrap's compiled button and card rules hardcode their own colors at
        build time instead of referencing --bs-primary etc., so those need
        explicit overrides too — plain root-variable overrides aren't enough). */
-    --bs-primary-hover: #4f6b67;
     --bs-primary-active: #465c59;
     --bs-secondary-hover: #786e60;
     --bs-secondary-active: #6a6153;
@@ -105,7 +104,6 @@
     --bs-emphasis-color: #f1ede4;
     --bs-code-color: #d19477;
 
-    --bs-primary-hover: #76918c;
     --bs-primary-active: #687f7a;
     --bs-secondary-hover: #8f8571;
     --bs-secondary-active: #7c7362;
@@ -144,7 +142,8 @@
  * and AdminLTE's --lte-card-variant-* (used by .card-outline.card-primary,
  * text-bg-primary, ...) does the same. Re-point them at the muted palette.
  */
-.btn-primary { --bs-btn-bg: var(--bs-primary); --bs-btn-border-color: var(--bs-primary); --bs-btn-hover-bg: var(--bs-primary-hover); --bs-btn-hover-border-color: var(--bs-primary-hover); --bs-btn-active-bg: var(--bs-primary-active); --bs-btn-active-border-color: var(--bs-primary-active); --bs-btn-disabled-bg: var(--bs-primary); --bs-btn-disabled-border-color: var(--bs-primary); --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb); }
+/* Primary buttons turn into their outline look on hover (transparent fill, primary-colored text and border). */
+.btn-primary { --bs-btn-bg: var(--bs-primary); --bs-btn-border-color: var(--bs-primary); --bs-btn-hover-bg: transparent; --bs-btn-hover-color: var(--bs-primary); --bs-btn-hover-border-color: var(--bs-primary); --bs-btn-active-bg: var(--bs-primary-active); --bs-btn-active-border-color: var(--bs-primary-active); --bs-btn-disabled-bg: var(--bs-primary); --bs-btn-disabled-border-color: var(--bs-primary); --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb); }
 .btn-secondary { --bs-btn-bg: var(--bs-secondary); --bs-btn-border-color: var(--bs-secondary); --bs-btn-hover-bg: var(--bs-secondary-hover); --bs-btn-hover-border-color: var(--bs-secondary-hover); --bs-btn-active-bg: var(--bs-secondary-active); --bs-btn-active-border-color: var(--bs-secondary-active); --bs-btn-disabled-bg: var(--bs-secondary); --bs-btn-disabled-border-color: var(--bs-secondary); --bs-btn-focus-shadow-rgb: var(--bs-secondary-rgb); }
 .btn-success { --bs-btn-bg: var(--bs-success); --bs-btn-border-color: var(--bs-success); --bs-btn-hover-bg: var(--bs-success-hover); --bs-btn-hover-border-color: var(--bs-success-hover); --bs-btn-active-bg: var(--bs-success-active); --bs-btn-active-border-color: var(--bs-success-active); --bs-btn-disabled-bg: var(--bs-success); --bs-btn-disabled-border-color: var(--bs-success); --bs-btn-focus-shadow-rgb: var(--bs-success-rgb); }
 .btn-info { --bs-btn-bg: var(--bs-info); --bs-btn-border-color: var(--bs-info); --bs-btn-hover-bg: var(--bs-info-hover); --bs-btn-hover-border-color: var(--bs-info-hover); --bs-btn-active-bg: var(--bs-info-active); --bs-btn-active-border-color: var(--bs-info-active); --bs-btn-disabled-bg: var(--bs-info); --bs-btn-disabled-border-color: var(--bs-info); --bs-btn-focus-shadow-rgb: var(--bs-info-rgb); }
