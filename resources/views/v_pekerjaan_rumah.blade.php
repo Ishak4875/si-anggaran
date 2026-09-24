@@ -37,7 +37,13 @@
         <div class="card">
             <div class="card-header d-flex flex-wrap align-items-center gap-2">
                 <span class="fw-semibold">Daftar PR</span>
-                <div class="input-group input-group-sm ms-auto" style="max-width:320px">
+                <select id="filterStatus" class="form-select form-select-sm ms-auto" style="max-width:160px" aria-label="Filter status">
+                    <option value="">Semua Status</option>
+                    <option value="belum">Belum</option>
+                    <option value="proses">Proses</option>
+                    <option value="selesai">Selesai</option>
+                </select>
+                <div class="input-group input-group-sm" style="max-width:320px">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" id="cariPr" class="form-control"
                            placeholder="Cari nama pekerjaan / penanggung jawab..." autocomplete="off">
@@ -62,7 +68,7 @@
                         </thead>
                         <tbody id="barisPr">
                             @forelse ($pekerjaans as $i => $pr)
-                                <tr class="pr-row"
+                                <tr class="pr-row" data-status="{{ $pr->status }}"
                                     data-cari="{{ Str::lower(trim($pr->nama_pekerjaan . ' ' . $pr->penanggung_jawab)) }}">
                                     <td class="text-center nomor">{{ $i + 1 }}</td>
                                     <td>{{ $pr->nama_pekerjaan }}</td>
@@ -114,7 +120,7 @@
                             @endforelse
                             <tr id="barisKosongCari" class="d-none">
                                 <td colspan="7" class="text-center py-4 text-secondary">
-                                    <i class="bi bi-search me-1"></i> Tidak ada PR yang cocok dengan pencarian.
+                                    <i class="bi bi-search me-1"></i> Tidak ada PR yang cocok dengan pencarian / filter status.
                                 </td>
                             </tr>
                         </tbody>
@@ -259,18 +265,21 @@
             document.getElementById('hapusJudul').textContent = b.dataset.nama || 'Hapus PR';
         });
 
-        // Pencarian real-time berdasarkan nama pekerjaan / penanggung jawab
+        // Pencarian real-time berdasarkan nama pekerjaan / penanggung jawab, digabung (AND) dengan filter status
         const cariInput = document.getElementById('cariPr');
         const cariReset = document.getElementById('cariReset');
+        const filterStatus = document.getElementById('filterStatus');
         const kosongCari = document.getElementById('barisKosongCari');
 
         function filterPr() {
             const q = cariInput.value.trim().toLowerCase();
+            const status = filterStatus.value;
             const rows = Array.from(document.querySelectorAll('.pr-row'));
             let visible = 0;
 
             rows.forEach((row) => {
-                const cocok = q === '' || row.dataset.cari.includes(q);
+                const cocok = (q === '' || row.dataset.cari.includes(q))
+                    && (status === '' || row.dataset.status === status);
                 row.classList.toggle('d-none', !cocok);
                 if (cocok) {
                     visible++;
@@ -283,6 +292,7 @@
 
         if (cariInput) {
             cariInput.addEventListener('input', filterPr);
+            filterStatus.addEventListener('change', filterPr);
             cariReset.addEventListener('click', () => {
                 cariInput.value = '';
                 filterPr();
