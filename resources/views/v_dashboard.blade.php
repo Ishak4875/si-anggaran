@@ -5,6 +5,13 @@
 <!--begin::App Content Header-->
 <div class="app-content-header">
     <div class="container-fluid">
+        <div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+            <i class="bi bi-bell-fill"></i>
+            <div>
+                <strong>Pengingat:</strong> Pastikan ngesync data 15 menit setelah penyimpanan data terakhir di iemon,
+                cth 09:15 WITA, 13:15 WITA, dan 17:15 WITA
+            </div>
+        </div>
         <div class="row align-items-center">
             <div class="col-sm-6">
                 <h3 class="mb-0">Dashboard Anggaran</h3>
