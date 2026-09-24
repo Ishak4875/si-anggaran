@@ -27,7 +27,7 @@
 </head>
 <!--end::Head-->
 <!--begin::Body-->
-<body class="@yield('bodyClass', 'login-page') bg-body-secondary">
+<body class="@yield('bodyClass', 'login-page') bg-body">
     @yield('content')
 
     <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/browser/overlayscrollbars.browser.es6.min.js"

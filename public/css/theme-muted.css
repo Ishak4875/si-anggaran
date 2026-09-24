@@ -24,11 +24,11 @@
     --bs-dark: #35322c;
     --bs-dark-rgb: 53, 50, 44;
 
-    /* Body surface: warm off-white instead of stark white, softened text instead of pure black */
+    /* Body surface: white background, softened text instead of pure black */
     --bs-body-color: #3a352e;
     --bs-body-color-rgb: 58, 53, 46;
-    --bs-body-bg: #f6f3ec;
-    --bs-body-bg-rgb: 246, 243, 236;
+    --bs-body-bg: #ffffff;
+    --bs-body-bg-rgb: 255, 255, 255;
     --bs-secondary-color: #5a5448;
     --bs-secondary-color-rgb: 90, 84, 72;
     --bs-secondary-bg: #e8e2d4;
