@@ -214,7 +214,9 @@ All four use the per-row-modal pattern (Tambah/Perbarui/Hapus, color-coded heade
 
 ### PR (Pekerjaan Rumah) pages
 
-**Fields** (`pekerjaan_rumahs`; `pekerjaan_rumah_kepala_balais` is identical minus `google_event_id`): `nama_pekerjaan` (required), `penanggung_jawab`, `deadline` (date), `status` (enum `belum`/`proses`/`selesai`, default `belum` — `PekerjaanRumah::STATUS_OPTIONS`, also used to validate the Kepala Balai PR), `keterangan`. Sorted by nearest `deadline` first, rows without a deadline last. Status renders as a colored badge (secondary/warning/success). Client-side search matches `nama_pekerjaan` + `penanggung_jawab`; no month filter.
+**Fields** (`pekerjaan_rumahs`; `pekerjaan_rumah_kepala_balais` is identical minus `google_event_id`): `nama_pekerjaan` (required), `penanggung_jawab`, `deadline` (date), `status` (enum `belum`/`proses`/`selesai`, default `belum` — `PekerjaanRumah::STATUS_OPTIONS`, also used to validate the Kepala Balai PR), `keterangan`. Sorted by nearest `deadline` first, rows without a deadline last. Status renders as a colored badge (secondary/warning/success). No month filter; instead the card header has two client-side filters combined with AND logic (no reload, row numbers re-sequence):
+- **Status dropdown** (`#filterStatus`: Semua Status / Belum / Proses / Selesai) matches a `data-status` attribute per row. Not persisted — resets to "Semua Status" on every page load.
+- **Search box** matches `data-cari` (lowercased `nama_pekerjaan` + `penanggung_jawab`).
 
 ## Google Calendar Sync (KPISDA agenda only)
 
