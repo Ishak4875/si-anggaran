@@ -301,7 +301,8 @@ Set in `.env`: `GOOGLE_CALENDAR_CREDENTIALS_PATH` and `GOOGLE_CALENDAR_ID`.
 - **Hapus (Delete)** modal: red header (`text-bg-danger`), confirmation dialog; logged-in admin cannot delete their own account.
 - All modals use Bootstrap 5 and JavaScript to populate form fields from row data attributes.
 - **Primary Key**: `users.id` (auto-increment); email is `unique` key but can be changed without affecting foreign-key relations (all relations use `id`).
-- Validation errors shown as alert at top of page; success messages redirect with session flash.
+- Validation errors are shown **inside the modal that failed**: each form posts a hidden `_form` (`tambah`/`edit`, plus `_user_id` for edit), and on a failed redirect the page script reopens that modal with the old name/email/role (never the password). Errors not tied to a modal (e.g. "Tidak bisa menghapus akun sendiri.") show as an alert above the table. Messages are Indonesian via `UserController::messages()`. Success messages redirect with session flash.
+- Blade gotcha hit here: `@json(...)` breaks if its argument is an array literal containing commas (`Unclosed '[' does not match ')'`) — build the array in `@php` first, then `@json($var)`.
 
 **Default accounts** (check `database/migrations/..._add_role_to_users_table.php`):
 - `Admin BWS` (admin@bws4.test, password: check notes) — super admin (role='admin')

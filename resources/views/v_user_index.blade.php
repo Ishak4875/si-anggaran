@@ -23,6 +23,17 @@
 
 <div class="app-content">
     <div class="container-fluid">
+        {{-- Error dari modal Tambah/Perbarui ditampilkan di dalam modal; di sini hanya error lain (mis. hapus akun sendiri). --}}
+        @if ($errors->any() && ! old('_form'))
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="card">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -96,11 +107,21 @@
     <div class="modal-dialog">
         <form method="POST" action="{{ route('users.store') }}" class="modal-content">
             @csrf
+            <input type="hidden" name="_form" value="tambah">
             <div class="modal-header text-bg-primary">
                 <h5 class="modal-title">Tambah Akun</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body">
+                @if ($errors->any() && old('_form') === 'tambah')
+                    <div class="alert alert-danger py-2" id="errorTambah">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <div class="mb-3">
                     <label class="form-label">Nama</label>
                     <input type="text" name="name" class="form-control" required placeholder="Nama lengkap pengguna">
@@ -138,11 +159,22 @@
         <form method="POST" id="formEdit" class="modal-content">
             @csrf
             @method('PUT')
+            <input type="hidden" name="_form" value="edit">
+            <input type="hidden" name="_user_id" id="editUserId">
             <div class="modal-header text-bg-warning">
                 <h5 class="modal-title">Perbarui Akun</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body">
+                @if ($errors->any() && old('_form') === 'edit')
+                    <div class="alert alert-danger py-2" id="errorEdit">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <div class="mb-3">
                     <label class="form-label">Nama</label>
                     <input type="text" name="name" id="editName" class="form-control" required>
@@ -204,15 +236,22 @@
         if (modalTambah) {
             modalTambah.addEventListener('hidden.bs.modal', () => {
                 document.querySelector('#modalTambah form').reset();
+                document.getElementById('errorTambah')?.remove();
             });
         }
 
         // Isi modal Perbarui dari tombol yang diklik
         const modalEdit = document.getElementById('modalEdit');
         if (modalEdit) {
+            modalEdit.addEventListener('hidden.bs.modal', () => {
+                document.getElementById('errorEdit')?.remove();
+            });
             modalEdit.addEventListener('show.bs.modal', (ev) => {
                 const b = ev.relatedTarget;
+                // Dibuka ulang otomatis setelah validasi gagal: isian sudah diisi dari old input.
+                if (!b) return;
                 document.getElementById('formEdit').action = base + '/' + b.dataset.id;
+                document.getElementById('editUserId').value = b.dataset.id;
                 document.getElementById('editName').value = b.dataset.name || '';
                 document.getElementById('editEmail').value = b.dataset.email || '';
                 document.getElementById('editRole').value = b.dataset.role || '';
@@ -228,6 +267,29 @@
                 document.getElementById('formHapus').action = base + '/' + b.dataset.id;
                 document.getElementById('hapusJudul').textContent = b.dataset.name || 'Pengguna';
             });
+        }
+
+        // Validasi gagal: buka lagi modal yang tadi dikirim beserta isian sebelumnya (password tidak ikut).
+        @php
+            $inputLama = $errors->any()
+                ? ['form' => old('_form'), 'name' => old('name'), 'email' => old('email'), 'role' => old('role'), '_user_id' => old('_user_id')]
+                : [];
+        @endphp
+        const lama = @json($inputLama);
+        const gagal = lama.form || null;
+        if (gagal === 'tambah') {
+            const f = document.querySelector('#modalTambah form');
+            f.querySelector('[name=name]').value = lama.name || '';
+            f.querySelector('[name=email]').value = lama.email || '';
+            if (lama.role) f.querySelector('[name=role]').value = lama.role;
+            bootstrap.Modal.getOrCreateInstance(modalTambah).show();
+        } else if (gagal === 'edit' && lama._user_id) {
+            document.getElementById('formEdit').action = base + '/' + lama._user_id;
+            document.getElementById('editUserId').value = lama._user_id;
+            document.getElementById('editName').value = lama.name || '';
+            document.getElementById('editEmail').value = lama.email || '';
+            document.getElementById('editRole').value = lama.role || '';
+            bootstrap.Modal.getOrCreateInstance(modalEdit).show();
         }
     });
 </script>

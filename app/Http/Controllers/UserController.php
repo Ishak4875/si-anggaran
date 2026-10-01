@@ -18,6 +18,22 @@ class UserController extends Controller
         }
     }
 
+    private function messages(): array
+    {
+        return [
+            'name.required'     => 'Nama wajib diisi.',
+            'name.max'          => 'Nama maksimal 255 karakter.',
+            'email.required'    => 'Email wajib diisi.',
+            'email.email'       => 'Format email tidak valid.',
+            'email.max'         => 'Email maksimal 255 karakter.',
+            'email.unique'      => 'Email sudah digunakan oleh akun lain.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min'      => 'Password minimal 8 karakter.',
+            'role.required'     => 'Role wajib dipilih.',
+            'role.in'           => 'Role yang dipilih tidak valid.',
+        ];
+    }
+
     public function index(): View
     {
         $this->authorize();
@@ -39,7 +55,7 @@ class UserController extends Controller
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', Password::defaults()],
             'role'     => ['required', 'in:' . implode(',', array_keys(User::ROLES))],
-        ]);
+        ], $this->messages());
 
         User::create([
             'name'     => $data['name'],
@@ -65,7 +81,7 @@ class UserController extends Controller
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'role'     => ['required', 'in:' . implode(',', array_keys(User::ROLES))],
             'password' => ['nullable', Password::defaults()],
-        ]);
+        ], $this->messages());
 
         if ($data['password']) {
             $data['password'] = Hash::make($data['password']);
