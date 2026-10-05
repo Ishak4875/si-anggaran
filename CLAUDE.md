@@ -182,6 +182,7 @@ Cc. Bapak Kabalai
 - Greeting determined by `now()->setTimezone('Asia/Makassar')->hour`: Pagi (0-10), Siang (11-14), Sore (15-17), Malam (18-23)
 - Status timestamp sourced from `Packet::latest('updated_at')` to show when data was last synced
 - "Bottom performer" = lowest Keu % among PPK below Ditjen SDA Keu target
+- **Known bug (open)**: the PPK list in the message shows the *pejabat* name cut to 20 chars (e.g. "Muhammad Ryzhal Ariz", "—" for a PPK without pejabat) instead of the short jabatan ("PPK Bend II"). `WhatsAppMessageFormatter::format()` passes `$p['nama']` (= `ppks.nama`, the person) to `shortPpkName()`, whose map is keyed by jabatan, so every lookup misses and falls back to `substr($name, 0, 20)`. Fix: pass `$p['jabatan']` (already provided by `ProgressReportService`). Satker lines also print short slugs ("OP", "Bendungan") rather than the "Satker OPSDA" style in the example above.
 
 ## Agenda (KPISDA & Kepala Balai)
 
@@ -278,6 +279,17 @@ Set in `.env`: `GOOGLE_CALENDAR_CREDENTIALS_PATH` and `GOOGLE_CALENDAR_ID`.
 - The "manage" pages follow one of two patterns: `PaguController` uses bulk delete-and-recreate on save (re-sorted by date, see above); `PpkController`, `UserController`, and the four agenda controllers use per-row modals (Tambah/Perbarui/Hapus) with color-coded headers (blue/yellow/red). Match the surrounding page's pattern when extending.
 - No test suite beyond Laravel's example tests (and the feature one fails by design — see Commands).
 
+## Manual / black-box testing
+
+A full black-box pass (100 cases, all Valid after fixing Kelola Akun) was run on 2026-10-01; its results are written up in the "Pengujian Aplikasi" section of the activity report (see "Reports and documents" below — that report leaves out the KPISDA cases). How to re-run it safely:
+
+- **Never create or edit a *dated* Agenda Rapat or a PR *with a deadline* on the KPISDA pages** (`/agenda-rapat`, `/pr`) while testing. They sync to the shared Google Calendar, and its subscribers have email notifications on — a test event emails real people. Test those pages with undated rows, or insert rows via tinker/`Model::create()` (sync only runs in the controllers). The Kepala Balai pages never sync and are safe to test with dates.
+- Prefix test data with `UJI`, delete it afterwards, and compare row counts before/after. Re-save "bulk" pages (Ditjen SDA values, Revisi Pagu) with their current values so nothing changes.
+- To reach admin-only pages, temporarily set the test account's role with tinker and restore it afterwards; for per-role checks, create throwaway accounts through Kelola Akun and log in as each.
+- "Sinkron Data API" is a real full re-sync from SIHKA (row counts/realisasi change between runs); that's normal, not a test side effect to undo.
+
+**Open findings from that test (low severity, not yet fixed):** validation messages and the 403 page from `can:` middleware are in English (`APP_LOCALE=en`, no `lang/id`); the main layout (dashboard, satker, pagu) never renders `$errors`, so server-side rejections there are silent; `assignPpk` silently skips PPKs from another satker but still flashes "berhasil"; `v_packets_regular_index` has no `@section('title')` (tab says "Dashboard") and no "not found" message for an empty search; Kelola Akun's "Terdaftar" column prints UTC instead of WITA.
+
 ## Authentication & User Management
 
 **Login & Register** are implemented with Laravel's built-in auth:
@@ -322,4 +334,11 @@ php artisan optimize:clear   # routes/views/config may be cached
 ```
 Pending migrations are easy to miss — `php artisan migrate:status` once showed four `Pending` rows, which is why the Kepala Balai account saw the wrong agenda. Things that are **not** in git and must be placed on the server by hand: `.env` (incl. `GOOGLE_CALENDAR_ID`) and `storage/app/google/calendar-service-account.json`. After role changes ship, check each account's role in Kelola Akun.
 
-**Security caveat**: the root `.htaccess` only rewrites requests for files that don't exist (`!-f`), and nothing denies dotfiles or `storage/`. Unless the host blocks them itself, `/.env` and `/storage/app/google/calendar-service-account.json` can be downloaded directly. Verify from outside and add deny rules (or point the docroot at `public/`) before assuming they're private.
+**Security caveat**: the root `.htaccess` only rewrites requests for files that don't exist (`!-f`), and nothing denies dotfiles or `storage/`. Unless the host blocks them itself, `/.env` and `/storage/app/google/calendar-service-account.json` can be downloaded directly. Verify from outside and add deny rules (or point the docroot at `public/`) before assuming they're private. Because the repo root is the web root, any document committed to the repo is also publicly downloadable from the site — and the GitHub repo itself is public.
+
+## Reports and documents
+
+- There is **one** report: the activity report "Laporan Pembuatan Aplikasi PROGRESSO.docx" (with NIP and screenshots of internal data), deliberately kept **outside** the repo in the user's Google Drive (`G:\My Drive\Kegiatan 2026\SISDA\SIP\`), built from their template "Laporan Perbaikan Website TW 2 New.docx" there. Its section "3. Pengujian Aplikasi" contains the full black-box test (environment, test accounts, per-feature case tables, findings, untested scenarios). Keep reports out of git — the separate black-box `.docx` files that used to live in `docs/` were removed (they're still in git history of the public repo).
+- **The report deliberately omits Agenda KPISDA** (per user request): no KPISDA menus, role, or Google Calendar sync, and the test is presented as 78 cases (the KPISDA agenda/PR groups, the two "data terpisah dari KPISDA" cases and the KPISDA role-access case were dropped; case codes were re-lettered A–K). The app itself still has the KPISDA feature. Some screenshots in the report still show the "Agenda KPISDA" sidebar menu. Don't reintroduce KPISDA into the report unless asked.
+- Editing the report: python-docx works (install with `python -m pip install python-docx`); use Word COM afterwards to update fields and export a PDF for visual checks (render pages with `pymupdf`, since poppler is missing).
+- When generating Word documents on this machine: Windows uses Indonesian regional settings, so Word's list separator is `;` — a TOC field like `TOC \t "Style,1"` silently finds nothing until the comma is replaced with `;`. Word (COM) is installed and can update fields / export PDF; LibreOffice and poppler are not.
