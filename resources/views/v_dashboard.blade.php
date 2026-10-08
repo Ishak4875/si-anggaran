@@ -12,6 +12,15 @@
                 cth 09:15 WITA, 13:15 WITA, dan 17:15 WITA
             </div>
         </div>
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <div class="row align-items-center">
             <div class="col-sm-6">
                 <h3 class="mb-0">Dashboard Anggaran</h3>

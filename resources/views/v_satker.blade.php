@@ -29,6 +29,16 @@
 <div class="app-content">
     <div class="container-fluid">
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         {{-- Ringkasan satker (berubah mengikuti filter PPK pada tabel di bawah) --}}
         <div class="row g-3 mb-2">
             <div class="col-6 col-md-3">

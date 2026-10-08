@@ -468,22 +468,34 @@ class DashboardController extends Controller
             'ppk.*' => ['nullable', 'integer'],
         ]);
 
+        $ditolak = 0;
+
         foreach ($data['ppk'] ?? [] as $packetId => $ppkId) {
             $ppkId = ($ppkId === '' || $ppkId === null) ? null : (int) $ppkId;
 
             // Tolak PPK di luar satker ini.
             if ($ppkId !== null && ! in_array($ppkId, $validPpkIds, true)) {
+                $ditolak++;
                 continue;
             }
 
-            Packet::where('id', (int) $packetId)
-                ->where('satker_group', $slug) // pastikan paket memang milik satker ini
-                ->update(['ppk_id' => $ppkId]);
+            // Pastikan paket memang milik satker ini.
+            $paketSah = Packet::where('id', (int) $packetId)->where('satker_group', $slug)->exists();
+            if (! $paketSah) {
+                $ditolak++;
+                continue;
+            }
+
+            Packet::where('id', (int) $packetId)->update(['ppk_id' => $ppkId]);
         }
 
-        return redirect()
-            ->route('satker.show', $slug)
-            ->with('status', 'Penetapan PPK berhasil disimpan.');
+        $redirect = redirect()->route('satker.show', $slug);
+
+        if ($ditolak > 0) {
+            return $redirect->with('error', "{$ditolak} penetapan PPK ditolak karena paket atau PPK bukan milik satker ini.");
+        }
+
+        return $redirect->with('status', 'Penetapan PPK berhasil disimpan.');
     }
 
     /**

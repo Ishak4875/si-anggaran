@@ -64,7 +64,7 @@
                                         @endphp
                                         <span class="badge {{ $roleBadge }}">{{ \App\Models\User::ROLES[$user->role] ?? $user->role }}</span>
                                     </td>
-                                    <td>{{ $user->created_at->translatedFormat('d M Y H:i') }}</td>
+                                    <td>{{ $user->created_at->timezone('Asia/Makassar')->translatedFormat('d M Y H:i') }}</td>
                                     <td>
                                         <button type="button"
                                                 class="btn btn-sm btn-warning text-white btn-edit"

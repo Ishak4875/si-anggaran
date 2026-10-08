@@ -1,5 +1,5 @@
 @extends('layout.v_layout')
-
+@section('title', 'Daftar Paket Reguler')
 @section('content')
 <div class="container-fluid">
     <div class="row">
@@ -69,15 +69,14 @@
                                             </td>
                                         </tr>
                                     @endforelse
-                                    <tr id="barisKosong" class="d-none">
-                                        <td colspan="8" class="text-center py-4 text-secondary">
-                                            <i class="bi bi-search me-1"></i> Tidak ada paket yang cocok dengan pencarian.
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                     @endforeach
+
+                    <div id="barisKosong" class="d-none text-center py-4 text-secondary">
+                        <i class="bi bi-search me-1"></i> Tidak ada paket yang cocok dengan pencarian.
+                    </div>
 
                     @if (count($data) === 0)
                         <div class="alert alert-info">
