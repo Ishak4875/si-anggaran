@@ -89,7 +89,7 @@
                         <a href="{{ route('agenda-rapat.index') }}"
                            class="nav-link {{ request()->routeIs('agenda-rapat.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-dot"></i>
-                            <p>Agenda Rapat</p>
+                            <p>Agenda</p>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -118,7 +118,7 @@
                         <a href="{{ route('agenda-kepala-balai.index') }}"
                            class="nav-link {{ request()->routeIs('agenda-kepala-balai.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-dot"></i>
-                            <p>Agenda Rapat</p>
+                            <p>Agenda</p>
                         </a>
                     </li>
                     <li class="nav-item">

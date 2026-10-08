@@ -29,7 +29,7 @@ class AgendaKepalaBalaiController extends Controller
     public function index(): View
     {
         return view('v_agenda_rapat', [
-            'judul'       => 'Agenda Rapat Kepala Balai',
+            'judul'       => 'Agenda Kepala Balai',
             'routePrefix' => 'agenda-kepala-balai',
             // Terbaru dulu (descending); baris tanpa tanggal/waktu (opsional) tetap di akhir.
             'agendas' => AgendaKepalaBalai::orderByRaw('tanggal_agenda IS NULL')

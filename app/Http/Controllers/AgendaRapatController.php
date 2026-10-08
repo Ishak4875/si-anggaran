@@ -34,7 +34,7 @@ class AgendaRapatController extends Controller
     public function index(): View
     {
         return view('v_agenda_rapat', [
-            'judul'       => 'Agenda Rapat',
+            'judul'       => 'Agenda',
             'routePrefix' => 'agenda-rapat',
             // Terbaru dulu (descending); baris tanpa tanggal/waktu (opsional) tetap di akhir.
             'agendas' => AgendaRapat::orderByRaw('tanggal_agenda IS NULL')
