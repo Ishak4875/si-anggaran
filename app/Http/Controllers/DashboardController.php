@@ -8,6 +8,7 @@ use App\Services\PacketSyncService;
 use App\Support\Satker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 use Throwable;
 
@@ -74,39 +75,49 @@ class DashboardController extends Controller
         ];
 
         $ditjen = DitjenProgres::current();
+        $lastSync = Packet::max('updated_at');
 
         return view('v_dashboard', [
             'rows'        => $rows,
             'totals'      => $totals,
-            'lastSync'    => Packet::max('updated_at'),
+            'lastSync'    => $lastSync,
             'paguChart'   => $this->buildPaguChart(),
             'ppkProgres'  => $this->buildPpkProgres(),
             'unmapped'    => $this->buildUnmappedPpk(),
             'ditjen'      => ['keu' => $ditjen->keu, 'fis' => $ditjen->fis],
-            'statusJam'   => $this->buildStatusJam(),
+            'statusJam'   => $this->buildStatusJam($lastSync),
         ]);
     }
 
     /**
-     * Status "checkpoint" laporan (08:00 / 12:00 / 16:00 WIB) berdasarkan jam
-     * saat ini, mengikuti pola pelaporan 4-jaman: checkpoint dianggap berlaku
-     * mulai 1 jam setelah waktunya sampai checkpoint berikutnya.
+     * Status "checkpoint" laporan (08:00 / 12:00 / 16:00 WIB) berdasarkan waktu
+     * sync terakhir (WITA). Data iemon disimpan pada jam checkpoint WIB (= +1 jam
+     * WITA) lalu disinkron 15 menit kemudian, jadi:
+     *   sync >= 17:15 WITA -> 16:00 WIB
+     *   sync >= 13:15 WITA -> 12:00 WIB
+     *   sync >= 09:15 WITA -> 08:00 WIB
+     *   sync <  09:15 WITA -> 16:00 WIB hari sebelumnya
      */
-    private function buildStatusJam(): array
+    private function buildStatusJam(?string $lastSync): array
     {
-        $now = now('Asia/Makassar'); // "jam di laptop" — konsisten dgn konversi WITA yg dipakai di aplikasi ini
-        $menit = $now->hour * 60 + $now->minute;
+        // Tanpa data sync, pakai jam sekarang agar status tetap tampil.
+        $sync = $lastSync
+            ? Carbon::parse($lastSync, 'UTC')->setTimezone('Asia/Makassar')
+            : now('Asia/Makassar');
+        $menit = $sync->hour * 60 + $sync->minute;
 
-        if ($menit >= 9 * 60 && $menit <= 13 * 60) {
-            $checkpoint = '08:00';
-            $tanggal = $now->copy();
-        } elseif ($menit >= 13 * 60 + 1 && $menit <= 17 * 60) {
+        if ($menit >= 17 * 60 + 15) {
+            $checkpoint = '16:00';
+            $tanggal = $sync->copy();
+        } elseif ($menit >= 13 * 60 + 15) {
             $checkpoint = '12:00';
-            $tanggal = $now->copy();
+            $tanggal = $sync->copy();
+        } elseif ($menit >= 9 * 60 + 15) {
+            $checkpoint = '08:00';
+            $tanggal = $sync->copy();
         } else {
             $checkpoint = '16:00';
-            // Dini hari (00:00–08:59): checkpoint 16:00 sebenarnya terjadi kemarin.
-            $tanggal = $menit < 9 * 60 ? $now->copy()->subDay() : $now->copy();
+            $tanggal = $sync->copy()->subDay();
         }
 
         return [

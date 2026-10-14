@@ -9,7 +9,9 @@
             <i class="bi bi-bell-fill"></i>
             <div>
                 <strong>Pengingat:</strong> Pastikan ngesync data 15 menit setelah penyimpanan data terakhir di iemon,
-                cth 09:15 WITA, 13:15 WITA, dan 17:15 WITA
+                cth 09:15 WITA, 13:15 WITA, dan 17:15 WITA.
+                Progres Ditjen SDA tidak ikut tersinkron, jadi masih perlu dimasukkan secara manual
+                melalui ikon pensil pada baris Ditjen SDA di tabel Progres per PPK &amp; Peringkat.
             </div>
         </div>
         @if ($errors->any())
@@ -564,17 +566,30 @@
     document.getElementById('btnUnduhPpkTable').addEventListener('click', function (ev) {
         const btn   = ev.currentTarget;
         const table = document.getElementById('ppkProgresCapture');
+        // Lebar penuh tabel. Di layar sempit (HP) pembungkus .table-responsive
+        // lebih sempit dari tabel dan bisa digeser, sehingga html2canvas hanya
+        // memotret bagian yang terlihat. Lebar ini dipakai untuk melebarkan
+        // pembungkus di dokumen kloningan agar seluruh kolom ikut terpotret.
+        const fullWidth = table.scrollWidth;
 
         btn.disabled = true;
         html2canvas(table, {
             scale: 2,
             backgroundColor: '#ffffff',
+            windowWidth: Math.max(window.innerWidth, fullWidth),
             // html2canvas tidak menangani sel <th rowspan> dengan benar (tetap
             // menggambar garis batas antar baris header menembus sel yang
             // menyatu). Ratakan header jadi satu baris khusus untuk hasil
             // capture agar garis itu tidak muncul; tampilan asli di halaman
             // tidak berubah karena ini hanya mengubah dokumen kloningan.
             onclone: function (clonedDoc) {
+                const wrap = clonedDoc.getElementById('ppkProgresCapture');
+                if (wrap) {
+                    wrap.style.overflow = 'visible';
+                    wrap.style.width    = fullWidth + 'px';
+                    wrap.style.maxWidth = 'none';
+                }
+
                 const thead = clonedDoc.querySelector('#ppkProgresTable thead');
                 if (thead) {
                     thead.innerHTML =
@@ -590,10 +605,21 @@
                 }
             },
         }).then(function (canvas) {
-            const link = document.createElement('a');
-            link.download = 'progres-ppk-peringkat.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            // Blob + object URL, bukan data URL: data URL gambar besar sering
+            // gagal diunduh di browser HP.
+            return new Promise(function (resolve) {
+                canvas.toBlob(function (blob) {
+                    const url  = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = 'progres-ppk-peringkat.png';
+                    link.href = url;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+                    resolve();
+                }, 'image/png');
+            });
         }).finally(function () {
             btn.disabled = false;
         });

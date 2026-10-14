@@ -39,7 +39,7 @@
                 <span class="fw-semibold">Daftar Agenda</span>
             </div>
             <div class="card-header d-flex flex-wrap align-items-center gap-2 border-top-0">
-                <button type="button" id="bulanToday" class="btn btn-sm btn-outline-secondary">Today</button>
+                <button type="button" id="bulanToday" class="btn btn-sm btn-outline-secondary">Hari Ini</button>
                 <div class="btn-group btn-group-sm" role="group">
                     <button type="button" id="bulanPrev" class="btn btn-outline-secondary" title="Bulan sebelumnya">
                         <i class="bi bi-chevron-left"></i>
