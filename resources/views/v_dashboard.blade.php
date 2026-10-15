@@ -247,6 +247,8 @@
                     #ppkProgresTable { font-size: 13pt; }
                     #ppkProgresTable th,
                     #ppkProgresTable td { vertical-align: middle !important; }
+                    /* Angka (Pagu, Realisasi, Keu, Fis) rata kanan. */
+                    #ppkProgresTable tbody td:nth-child(n+3):nth-child(-n+6) { text-align: right; }
                     /* Hilangkan garis tengah yang menembus sel rowspan (No., Satker/PPK, Pagu, Realisasi, Rank) di header. */
                     #ppkProgresTable thead tr:first-child th[rowspan] { border-bottom: 0; }
                 </style>
