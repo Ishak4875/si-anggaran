@@ -9,6 +9,9 @@
             data-accordion="false"
             id="navigation">
 
+            {{-- Akun khusus CCTV hanya melihat menu CCTV Biota --}}
+            @unless (Auth::user()->isCctvOnly())
+
             {{-- Dashboard --}}
             <li class="nav-item">
                 <a href="{{ route('dashboard') }}"
@@ -71,6 +74,17 @@
                    class="nav-link {{ request()->routeIs('ppk.*') ? 'active' : '' }}">
                     <i class="nav-icon bi bi-person-badge"></i>
                     <p>Kelola PPK</p>
+                </a>
+            </li>
+
+            @endunless
+
+            {{-- CCTV Biota --}}
+            <li class="nav-item">
+                <a href="{{ route('cctv.index') }}"
+                   class="nav-link {{ request()->routeIs('cctv.*') ? 'active' : '' }}">
+                    <i class="nav-icon bi bi-camera-video"></i>
+                    <p>CCTV Biota</p>
                 </a>
             </li>
 

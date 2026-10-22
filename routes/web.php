@@ -3,6 +3,7 @@
 use App\Http\Controllers\AgendaKepalaBalaiController;
 use App\Http\Controllers\AgendaRapatController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CctvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaguController;
 use App\Http\Controllers\PacketsRegularController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\PekerjaanRumahController;
 use App\Http\Controllers\PekerjaanRumahKepalaBalaiController;
 use App\Http\Controllers\PpkController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\BlockCctvOnly;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -23,7 +25,15 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
+// CCTV: terbuka untuk semua akun, termasuk akun khusus CCTV (role "cctv").
 Route::middleware('auth')->group(function () {
+    Route::get('/cctv', [CctvController::class, 'index'])->name('cctv.index');
+    Route::get('/cctv/stream', [CctvController::class, 'stream'])->name('cctv.stream');
+    Route::post('/cctv/ptz', [CctvController::class, 'ptz'])->name('cctv.ptz');
+});
+
+// Selain CCTV: akun role "cctv" dialihkan ke halaman CCTV.
+Route::middleware(['auth', BlockCctvOnly::class])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/sync', [DashboardController::class, 'sync'])->name('packets.sync');
     Route::post('/ditjen-progres', [DashboardController::class, 'updateDitjenProgres'])->name('ditjen.update');

@@ -44,4 +44,12 @@ return [
         'calendar_id'      => env('GOOGLE_CALENDAR_ID'),
     ],
 
+    // Tuya Cloud (CCTV Biota) — siaran langsung kamera via HLS
+    'tuya' => [
+        'access_id'     => env('TUYA_ACCESS_ID'),
+        'access_secret' => env('TUYA_ACCESS_SECRET'),
+        'region'        => env('TUYA_REGION', 'sg'),
+        'device_id'     => env('TUYA_DEVICE_ID'),
+    ],
+
 ];

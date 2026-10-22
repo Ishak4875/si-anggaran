@@ -251,6 +251,14 @@ Set in `.env`: `GOOGLE_CALENDAR_CREDENTIALS_PATH` and `GOOGLE_CALENDAR_ID`.
 
 **Notifications to other people**: sharing the calendar ("Make changes and see all event details") does not notify anyone. Each person must add the calendar to their own Google account and enable *Settings → [calendar] → Other notifications → New/Changed/Canceled events → Email* **in their own account** — the owner's settings only affect the owner. Adding people as event *attendees* is not an option: a service account gets 403 inviting attendees without Domain-Wide Delegation, which needs Google Workspace (not @gmail.com). If app-controlled notifications are ever needed, send them from Laravel Mail instead (note `MAIL_MAILER=log` locally).
 
+## CCTV Biota (Tuya Cloud)
+
+Menu "CCTV Biota" (`/cctv`, `CctvController`, `v_cctv.blade.php`), open to every logged-in account. The camera is a BIOTA Smart Camera Edge 4G (SIM-card, battery) — a Tuya OEM device behind carrier NAT, so there is **no RTSP / direct IP access**; everything goes through Tuya Cloud. The camera was re-paired into the Smart Life app (the Biota app can't link to a Tuya developer project) and linked to Tuya cloud project "CCTV Biota 1" (Singapore data center).
+
+- `App\Services\TuyaCameraService` signs requests itself (HMAC-SHA256, no SDK); access token cached as `tuya_access_token` (cache store is the DB, so MySQL must be up). Config `services.tuya` ← `.env` `TUYA_ACCESS_ID`, `TUYA_ACCESS_SECRET`, `TUYA_REGION` (`sg`), `TUYA_DEVICE_ID`. Must be added to the server `.env` by hand.
+- Stream: `allocateStreamUrl('flv'|'hls')` → `POST /v1.0/devices/{id}/stream/actions/allocate` (needs the **IoT Video Live Stream** API service authorized on the cloud project, else error 28841101). The page plays **FLV** via mpegts.js (~1–3 s delay) and falls back to **HLS** via hls.js (~10 s) if FLV never plays (e.g. port 8080 blocked). The browser fetches video straight from Tuya — nothing is proxied, so it works on shared hosting. No time limit on playback; viewing uses the camera's SIM data and battery.
+- PTZ: `ptzMove(0–7)` / `ptzStop()` → `POST /v2.0/cloud/thing/{id}/shadow/properties/issue` with DP `ptz_control` (0 up, 2 right, 4 down, 6 left; odd = diagonals) / `ptz_stop`. The page shows only up/down/left/right, hold-to-move, auto-stop after 5 s. The legacy `/v1.0/devices/{id}/functions|status` endpoints answer "not support" for this camera — use the v2.0 thing-model endpoints.
+
 ## Kelola Revisi Pagu — auto-sort on save
 
 `PaguController::store()` does **not** just delete-and-recreate rows in submission order — it also **re-sorts by `tanggal` before re-creating them** (nulls sort last, via `Carbon::createFromFormat('Y-m-d', ...)->timestamp` comparison in `usort()`). This was a bug fix: originally rows kept whatever order they were submitted in, so inserting/editing a row's date didn't move it to its chronological position until a full page reload re-queried with `orderBy('tanggal')` — the *visible* order on save didn't match. If touching this controller again, keep the sort-before-recreate step.
@@ -311,6 +319,7 @@ A full black-box pass (100 cases, all Valid after fixing Kelola Akun) was run on
 - `'kpisda'` = sees Agenda KPISDA only.
 - `'kabalai'` (label "Kepala Balai") = sees Agenda Kepala Balai only.
 - `'user'` = dashboard and data-management pages, **no** agenda menus.
+- `'cctv'` (label "CCTV (hanya lihat CCTV)") = **only** the CCTV Biota page (live view + PTZ). `App\Http\Middleware\BlockCctvOnly` wraps every other auth route: GETs redirect to `/cctv` (so login lands there), other methods 403. The sidebar hides everything else via `@unless (Auth::user()->isCctvOnly())`. Added by migration `..._add_cctv_role_to_users_table`.
 - Only `admin` counts as admin (`User::isAdmin()`); `kpisda`/`kabalai` behave like `user` everywhere except the agenda menus.
 - Menu "Kelola Akun" is hidden in sidebar for non-admin users; direct access to `/users*` routes returns 403 Forbidden (checked in `UserController` via private `authorize()` method).
 - History: agenda access briefly used a `users.agenda_group` column (migration `..._add_agenda_group_to_users_table`, which also hard-coded `kabalai@gmail.com`). Migration `..._replace_agenda_group_with_roles` replaced it: it widens the role enum, maps non-admin accounts from their old group to the matching role (so nobody lost access), then drops the column. Both migrations must stay in order — hosting runs them back to back.

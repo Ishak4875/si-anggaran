@@ -15,6 +15,7 @@ class User extends Authenticatable
         'user'    => 'User',
         'kpisda'  => 'KPISDA',
         'kabalai' => 'Kepala Balai',
+        'cctv'    => 'CCTV (hanya lihat CCTV)',
         'admin'   => 'Super Admin',
     ];
 
@@ -66,5 +67,13 @@ class User extends Authenticatable
     public function canSeeAgendaKabalai(): bool
     {
         return in_array($this->role, ['admin', 'kabalai'], true);
+    }
+
+    /**
+     * Akun khusus CCTV: hanya boleh membuka halaman CCTV Biota.
+     */
+    public function isCctvOnly(): bool
+    {
+        return $this->role === 'cctv';
     }
 }
