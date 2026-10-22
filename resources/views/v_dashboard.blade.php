@@ -330,8 +330,11 @@
                             @endforelse
                         </tbody>
                     </table>
-                    <div class="text-center fw-bold border-top py-2 bg-white">
+                    <div class="text-center fw-bold border-top py-2 bg-white position-relative">
                         Status : {{ $statusJam['tanggal'] }} ; {{ $statusJam['jam'] }} WIB
+                        {{-- Watermark; berada di dalam area capture agar ikut di gambar "Unduh Gambar" --}}
+                        <span class="position-absolute bottom-0 end-0 me-2 mb-1 fw-normal fst-italic"
+                              style="font-size: 9pt; color: #9a948a;">Created by Ishak; KPISDA</span>
                     </div>
                 </div>
             </div>
