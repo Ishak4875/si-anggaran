@@ -77,7 +77,6 @@
     .ptz-btn { padding: 0; font-size: 1.25rem; touch-action: none; user-select: none; }
     .ptz-tengah { color: var(--bs-secondary-color); }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js" crossorigin="anonymous"></script>
 <script>
 (() => {
     const PTZ_URL = @json(route('cctv.ptz'));
@@ -143,12 +142,15 @@
     const btnPutar = document.getElementById('btnPutar');
     const btnStop = document.getElementById('btnStop');
 
-    // FLV (jeda ±1–3 detik) bila browser mendukung; HLS (±10 detik) sebagai cadangan
-    let mode = (window.mpegts && mpegts.getFeatureList().mseLivePlayback) ? 'flv' : 'hls';
+    // FLV lewat mpegts.js. HLS hanya untuk browser tanpa MSE (Safari iPhone lama) yang
+    // memutarnya secara native: hls.js tidak bisa dipakai karena server Tuya tidak mengirim
+    // header CORS untuk playlist HLS, sedangkan <video src> native tidak terkena CORS.
+    const mode = (window.mpegts && mpegts.getFeatureList().mseLivePlayback) ? 'flv' : 'hls';
+    const BATAS_TUNGGU_MS = 15000; // gambar pertama biasanya datang 2–7 detik setelah Putar
     let player = null;
     let ulang = 0;
-    let pernahTayang = false;
     let berjalan = false;
+    let pengawas = null;
 
     const setStatus = (teks, kelas = 'text-secondary') => {
         status.className = 'small ' + kelas;
@@ -163,75 +165,67 @@
     };
 
     const lepas = () => {
+        clearTimeout(pengawas);
         if (player) { player.destroy(); player = null; }
         video.removeAttribute('src');
         video.load();
     };
 
-    // Siaran putus (URL kedaluwarsa, kamera tidur, jaringan): sambung ulang,
-    // atau pindah ke HLS bila FLV belum pernah berhasil tayang (mis. port diblokir).
+    // Siaran putus atau tidak kunjung tayang (URL kedaluwarsa, kamera tidur, jaringan):
+    // minta URL baru beberapa kali, lalu menyerah dengan pesan yang jelas.
     const gagal = () => {
         if (!berjalan) return;
-        if (mode === 'flv' && !pernahTayang) {
-            mode = 'hls';
-            setStatus('FLV tidak bisa diputar, beralih ke HLS…', 'text-warning');
-            putar();
-        } else if (ulang++ < MAKS_ULANG) {
+        if (ulang++ < MAKS_ULANG) {
             setStatus('Siaran terputus, menyambung ulang…', 'text-warning');
             putar();
         } else {
-            hentikan('Siaran gagal dimuat. Pastikan kamera online, lalu coba lagi.', 'text-danger');
+            hentikan('Video belum diterima dari kamera. Tekan Putar lagi; bila tetap gagal, '
+                + 'periksa kamera di aplikasi Smart Life (online / sinyal 4G).', 'text-danger');
         }
     };
 
     const pasangFlv = (url) => {
         const p = mpegts.createPlayer({ type: 'flv', isLive: true, url }, {
-            enableStashBuffer: false,
+            // Sisakan cadangan ±3 detik supaya naik-turunnya sinyal 4G kamera tidak
+            // membuat video tersendat; ketertinggalan dikejar dengan sedikit mempercepat
+            // pemutaran (liveSync), bukan melompat (latency chasing).
+            enableStashBuffer: true,
             lazyLoad: false,
-            liveBufferLatencyChasing: true,
-            liveBufferLatencyMaxLatency: 1.5,
-            liveBufferLatencyMinRemain: 0.3,
+            liveBufferLatencyChasing: false,
+            liveSync: true,
+            liveSyncTargetLatency: 3,
+            liveSyncMaxLatency: 6,
+            liveSyncPlaybackRate: 1.1,
         });
         p.attachMediaElement(video);
         p.on(mpegts.Events.ERROR, gagal);
         p.on(mpegts.Events.LOADING_COMPLETE, gagal); // server menutup siaran
         p.load();
-        p.play();
+        Promise.resolve(p.play()).catch(() => {}); // dibatalkan saat Hentikan/sambung ulang: wajar
         return { destroy: () => { p.pause(); p.unload(); p.detachMediaElement(); p.destroy(); } };
     };
 
-    const pasangHls = (url) => {
-        if (window.Hls && Hls.isSupported()) {
-            const h = new Hls({
-                liveDurationInfinity: true,
-                liveSyncDurationCount: 1,       // putar dekat ujung siaran
-                liveMaxLatencyDurationCount: 3,
-                maxLiveSyncPlaybackRate: 1.5,   // kejar ketertinggalan dengan sedikit mempercepat
-            });
-            h.loadSource(url);
-            h.attachMedia(video);
-            h.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-            h.on(Hls.Events.ERROR, (_e, d) => { if (d.fatal) gagal(); });
-            return h;
+    const pasangHlsNative = (url) => {
+        if (!video.canPlayType('application/vnd.apple.mpegurl')) {
+            throw new Error('Browser tidak mendukung pemutaran siaran.');
         }
-        if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url; // Safari / iOS
-            video.play().catch(() => {});
-            return null;
-        }
-        throw new Error('Browser tidak mendukung pemutaran siaran.');
+        video.src = url;
+        video.play().catch(() => {});
+        return null;
     };
 
     const putar = async () => {
         berjalan = true;
         btnPutar.disabled = true;
-        setStatus('Menghubungkan ke kamera…');
+        setStatus(ulang ? 'Menyambung ulang…' : 'Menghubungkan ke kamera… (biasanya ±5–10 detik)');
         try {
             const url = await ambilUrl();
             if (!berjalan) return; // keburu dihentikan
             lepas();
-            player = mode === 'flv' ? pasangFlv(url) : pasangHls(url);
+            player = mode === 'flv' ? pasangFlv(url) : pasangHlsNative(url);
             btnStop.classList.remove('d-none');
+            // Tidak ada gambar sama sekali dalam batas waktu: anggap gagal (biasanya kamera tidur)
+            pengawas = setTimeout(() => { if (video.readyState < 3) gagal(); }, BATAS_TUNGGU_MS);
         } catch (err) {
             hentikan(err.message, 'text-danger');
         } finally {
@@ -249,9 +243,9 @@
     btnPutar.addEventListener('click', () => { ulang = 0; putar(); });
     btnStop.addEventListener('click', () => hentikan());
     video.addEventListener('playing', () => {
+        clearTimeout(pengawas);
         ulang = 0;
-        pernahTayang = pernahTayang || mode === 'flv';
-        setStatus('Siaran langsung (' + mode.toUpperCase() + ')', 'text-success');
+        setStatus('Siaran langsung', 'text-success');
     });
 })();
 </script>
