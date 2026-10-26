@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CctvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaguController;
+use App\Http\Controllers\PacketsInpresController;
 use App\Http\Controllers\PacketsRegularController;
 use App\Http\Controllers\PekerjaanRumahController;
 use App\Http\Controllers\PekerjaanRumahKepalaBalaiController;
@@ -28,9 +29,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 // CCTV: terbuka untuk semua akun, termasuk akun khusus CCTV (role "cctv").
 Route::middleware('auth')->group(function () {
     Route::get('/cctv', [CctvController::class, 'index'])->name('cctv.index');
-    Route::get('/cctv/stream', [CctvController::class, 'stream'])->name('cctv.stream');
-    Route::get('/cctv/status', [CctvController::class, 'status'])->name('cctv.status');
-    Route::post('/cctv/ptz', [CctvController::class, 'ptz'])->name('cctv.ptz');});
+    Route::get('/cctv/stream', [CctvController::class, 'stream'])->name('cctv.stream');    Route::post('/cctv/ptz', [CctvController::class, 'ptz'])->name('cctv.ptz');});
 
 // Selain CCTV: akun role "cctv" dialihkan ke halaman CCTV.
 Route::middleware(['auth', BlockCctvOnly::class])->group(function () {
@@ -49,6 +48,7 @@ Route::middleware(['auth', BlockCctvOnly::class])->group(function () {
     Route::delete('/ppk/{ppk}', [PpkController::class, 'destroy'])->name('ppk.destroy');
 
     Route::get('/packets-reguler', [PacketsRegularController::class, 'index'])->name('packets-reguler.index');
+    Route::get('/packets-inpres', [PacketsInpresController::class, 'index'])->name('packets-inpres.index');
 
     Route::middleware('can:agenda-kpisda')->group(function () {
         Route::get('/agenda-rapat', [AgendaRapatController::class, 'index'])->name('agenda-rapat.index');

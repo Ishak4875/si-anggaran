@@ -30,6 +30,13 @@
                         <p>Daftar Paket Reguler</p>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('packets-inpres.index') }}"
+                       class="nav-link {{ request()->routeIs('packets-inpres.*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-flag"></i>
+                        <p>Daftar Paket Inpres</p>
+                    </a>
+                </li>
             @endif
 
             {{-- Paket Kegiatan per Satker --}}
