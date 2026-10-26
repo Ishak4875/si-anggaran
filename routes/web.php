@@ -29,8 +29,8 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::middleware('auth')->group(function () {
     Route::get('/cctv', [CctvController::class, 'index'])->name('cctv.index');
     Route::get('/cctv/stream', [CctvController::class, 'stream'])->name('cctv.stream');
-    Route::post('/cctv/ptz', [CctvController::class, 'ptz'])->name('cctv.ptz');
-});
+    Route::get('/cctv/status', [CctvController::class, 'status'])->name('cctv.status');
+    Route::post('/cctv/ptz', [CctvController::class, 'ptz'])->name('cctv.ptz');});
 
 // Selain CCTV: akun role "cctv" dialihkan ke halaman CCTV.
 Route::middleware(['auth', BlockCctvOnly::class])->group(function () {

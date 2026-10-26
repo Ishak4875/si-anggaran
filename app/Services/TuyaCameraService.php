@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -51,6 +52,36 @@ class TuyaCameraService
     }
 
     /**
+     * Ringkasan status kamera: online, baterai, sumber daya.
+     * Saat kamera offline, nilai DP adalah laporan terakhirnya (lihat "dilaporkan").
+     * Di-cache STATUS_CACHE_SECONDS dan dipakai bersama semua penonton, supaya
+     * pemakaian tetap di bawah kuota gratis Tuya (±26 ribu panggilan/bulan;
+     * tiap pembaruan = 2 panggilan).
+     */
+    public const STATUS_CACHE_SECONDS = 300;
+
+    public function deviceStatus(): array
+    {
+        return Cache::remember('tuya_device_status', self::STATUS_CACHE_SECONDS, function () {
+            $deviceId = config('services.tuya.device_id');
+            $device = $this->request('GET', "/v1.0/devices/{$deviceId}");
+            $dp = collect($this->request('GET', "/v2.0/cloud/thing/{$deviceId}/shadow/properties")['properties'] ?? [])
+                ->keyBy('code');
+
+            $baterai = $dp->get('wireless_electricity');
+
+            return [
+                'online' => (bool) ($device['online'] ?? false),
+                'baterai' => $baterai['value'] ?? null, // 0–100 (%)
+                'baterai_lemah' => $dp->get('wireless_lowpower')['value'] ?? 10, // ambang alarm (%)
+                'mengisi_daya' => ($dp->get('wireless_powermode')['value'] ?? null) === '1', // 1 = dicolok / sedang diisi
+                'dilaporkan' => isset($baterai['time']) ? intdiv($baterai['time'], 1000) : null, // unix detik
+                'diperiksa' => time(), // kapan status ini diambil dari Tuya
+            ];
+        });
+    }
+
+    /**
      * Gerakkan kamera (pan/tilt). Arah sesuai DP ptz_control:
      * 0 atas, 1 kanan atas, 2 kanan, 3 kanan bawah, 4 bawah, 5 kiri bawah, 6 kiri, 7 kiri atas.
      */
@@ -63,7 +94,6 @@ class TuyaCameraService
     {
         $this->issueProperties(['ptz_stop' => true]);
     }
-
     private function issueProperties(array $properties): void
     {
         $deviceId = config('services.tuya.device_id');
@@ -146,9 +176,15 @@ class TuyaCameraService
         $http = Http::withHeaders($headers)->timeout(15);
         $url = $this->host() . $path;
 
-        $response = $method === 'POST'
-            ? $http->withBody($json, 'application/json')->post($url)
-            : $http->get($url);
+        try {
+            $response = $method === 'POST'
+                ? $http->withBody($json, 'application/json')->post($url)
+                : $http->get($url);
+        } catch (ConnectionException $e) {
+            // Jaringan/DNS gagal: jadikan RuntimeException agar ditangani seperti error Tuya lain
+            Log::warning('Tuya API tidak terjangkau', ['path' => $path, 'msg' => $e->getMessage()]);
+            throw new RuntimeException('Server Tuya tidak bisa dihubungi. Periksa koneksi internet server.', 0, $e);
+        }
 
         $data = $response->json();
 
