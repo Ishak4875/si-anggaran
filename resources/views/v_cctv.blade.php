@@ -22,15 +22,7 @@
 
         <div class="card">
             <div class="card-header d-flex flex-wrap align-items-center gap-2">
-                <h3 class="card-title mb-0"><i class="bi bi-camera-video me-1"></i> Live View</h3>
-                <div class="d-flex flex-wrap gap-1 me-auto" id="kameraInfo">
-                    <span id="kameraOnline" class="badge text-bg-secondary" title="Status kamera menurut Tuya Cloud">
-                        <i class="bi bi-circle-fill me-1" style="font-size: .55em; vertical-align: middle;"></i>
-                        <span>Memeriksa…</span>
-                    </span>
-                    <span id="kameraBaterai" class="badge text-bg-secondary d-none">
-                        <i class="bi bi-battery me-1"></i><span></span>
-                    </span>                </div>
+                <h3 class="card-title mb-0 me-auto"><i class="bi bi-camera-video me-1"></i> Live View</h3>
                 <span id="cctvStatus" class="text-secondary small">Siaran belum diputar.</span>
                 <button type="button" id="btnPutar" class="btn btn-primary btn-sm" @disabled(! $configured)>
                     <i class="bi bi-play-fill"></i> Putar
@@ -138,67 +130,6 @@
         btn.addEventListener('contextmenu', (e) => e.preventDefault());
     });
     window.addEventListener('blur', berhenti);
-})();
-</script>
-<script>
-(() => {
-    const STATUS_URL = @json(route('cctv.status'));
-    // Sama dengan lama cache status di server; lebih sering pun hanya mendapat hasil yang sama
-    const INTERVAL_MS = @json(\App\Services\TuyaCameraService::STATUS_CACHE_SECONDS * 1000);
-    if (!@json($configured)) { document.getElementById('kameraInfo').classList.add('d-none'); return; }
-
-    const elOnline = document.getElementById('kameraOnline');
-    const elBaterai = document.getElementById('kameraBaterai');
-
-    const tampil = (el, teks, kelas, judul, ikon = null) => {
-        el.className = 'badge ' + kelas;
-        el.lastElementChild.textContent = teks;
-        el.title = judul;
-        if (ikon) el.firstElementChild.className = 'bi ' + ikon + ' me-1';
-    };
-
-    const ikonBaterai = (persen, isi) => {
-        if (isi) return 'bi-battery-charging';
-        if (persen >= 75) return 'bi-battery-full';
-        if (persen >= 25) return 'bi-battery-half';
-        return 'bi-battery';
-    };
-
-    const cek = async () => {
-        try {
-            const res = await fetch(STATUS_URL, { headers: { 'Accept': 'application/json' } });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message);
-            const jam = new Date((data.diperiksa || Date.now() / 1000) * 1000).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            // Saat offline, baterai adalah laporan terakhir kamera
-            const terakhir = data.dilaporkan
-                ? ' Laporan terakhir kamera: ' + new Date(data.dilaporkan * 1000).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) + '.'
-                : '';
-            const catatan = data.online ? '' : ' (terakhir)';
-
-            data.online
-                ? tampil(elOnline, 'Online', 'text-bg-success', 'Kamera terhubung ke Tuya Cloud (dicek ' + jam + ')')
-                : tampil(elOnline, 'Offline', 'text-bg-danger', 'Kamera tidak terhubung ke Tuya Cloud (dicek ' + jam + '); siaran tidak bisa diputar');
-
-            if (data.baterai !== null) {
-                const lemah = !data.mengisi_daya && data.baterai <= data.baterai_lemah;
-                tampil(elBaterai,
-                    data.baterai + '%' + (data.mengisi_daya ? ' · mengisi' : '') + catatan,
-                    lemah ? 'text-bg-danger' : (data.baterai < 25 ? 'text-bg-warning' : 'text-bg-secondary'),
-                    'Baterai kamera' + (data.mengisi_daya ? ', sedang dicolok/diisi daya' : ', memakai baterai')
-                        + (lemah ? '; baterai lemah' : '') + '.' + terakhir,
-                    ikonBaterai(data.baterai, data.mengisi_daya));
-            } else {
-                elBaterai.classList.add('d-none');
-            }        } catch (e) {
-            tampil(elOnline, 'Status tidak diketahui', 'text-bg-secondary', e.message || 'Gagal memeriksa status kamera');
-            elBaterai.classList.add('d-none');
-        }
-    };
-
-    cek();
-    setInterval(() => { if (!document.hidden) cek(); }, INTERVAL_MS);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) cek(); });
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js" crossorigin="anonymous"></script>
