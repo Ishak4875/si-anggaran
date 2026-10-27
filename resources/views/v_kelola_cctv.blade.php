@@ -118,10 +118,6 @@
                     </table>
                 </div>
             </div>
-            <div class="card-footer small text-secondary">
-                Kamera baru harus dipasangkan dulu di aplikasi <strong>Smart Life</strong> dengan akun yang tertaut ke proyek Tuya,
-                baru kemudian muncul di pilihan kamera. Daftar kamera dari Tuya diperbarui paling lambat 5 menit.
-            </div>
         </div>
 
     </div>
