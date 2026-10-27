@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -16,6 +17,7 @@ class User extends Authenticatable
         'kpisda'  => 'KPISDA',
         'kabalai' => 'Kepala Balai',
         'cctv'    => 'CCTV (hanya lihat CCTV)',
+        'ppk'     => 'PPK (CCTV paket sendiri)',
         'admin'   => 'Super Admin',
     ];
 
@@ -29,6 +31,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'ppk_id',
     ];
 
     /**
@@ -70,10 +73,27 @@ class User extends Authenticatable
     }
 
     /**
-     * Akun khusus CCTV: hanya boleh membuka halaman CCTV Biota.
+     * Akun yang hanya boleh membuka halaman CCTV: role "cctv" (semua kamera)
+     * dan role "ppk" (hanya kamera di paket PPK-nya, lihat Cctv::scopeVisibleTo).
      */
     public function isCctvOnly(): bool
     {
-        return $this->role === 'cctv';
+        return in_array($this->role, ['cctv', 'ppk'], true);
+    }
+
+    /**
+     * Kelola CCTV (tambah/pindah/hapus kamera): KPISDA, dan Super Admin.
+     */
+    public function canManageCctv(): bool
+    {
+        return in_array($this->role, ['admin', 'kpisda'], true);
+    }
+
+    /**
+     * PPK yang ditautkan ke akun role "ppk".
+     */
+    public function ppk(): BelongsTo
+    {
+        return $this->belongsTo(Ppk::class);
     }
 }

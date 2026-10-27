@@ -95,6 +95,17 @@
                 </a>
             </li>
 
+            {{-- Kelola CCTV (KPISDA & Super Admin) --}}
+            @can('kelola-cctv')
+            <li class="nav-item">
+                <a href="{{ route('kelola-cctv.index') }}"
+                   class="nav-link {{ request()->routeIs('kelola-cctv.*') ? 'active' : '' }}">
+                    <i class="nav-icon bi bi-camera-reels"></i>
+                    <p>Kelola CCTV</p>
+                </a>
+            </li>
+            @endcan
+
             {{-- Agenda KPISDA --}}
             @can('agenda-kpisda')
             <li class="nav-item {{ request()->routeIs('agenda-rapat.*') || request()->routeIs('pr.*') ? 'menu-open' : '' }}">

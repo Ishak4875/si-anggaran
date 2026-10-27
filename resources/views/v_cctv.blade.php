@@ -2,10 +2,31 @@
 @section('title', 'CCTV Biota')
 @section('content')
 
+@php
+    $singkatan = collect(\App\Support\Satker::groups())->map(fn ($g) => $g['singkatan']);
+@endphp
+
 <div class="app-content-header">
     <div class="container-fluid">
-        <h3 class="mb-0">CCTV Biota</h3>
-        <small class="text-secondary">Siaran langsung kamera BIOTA Smart Camera Edge 4G.</small>
+        <div class="row align-items-center">
+            <div class="col-sm-8">
+                <h3 class="mb-0">CCTV Biota</h3>
+                <small class="text-secondary">
+                    @if (auth()->user()->role === 'ppk')
+                        Kamera di paket {{ auth()->user()->ppk?->jabatan ?? 'PPK Anda' }}.
+                    @else
+                        Siaran langsung kamera per paket, dikelompokkan per satker dan PPK.
+                    @endif
+                </small>
+            </div>
+            @can('kelola-cctv')
+                <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
+                    <a href="{{ route('kelola-cctv.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-camera-reels"></i> Kelola CCTV
+                    </a>
+                </div>
+            @endcan
+        </div>
     </div>
 </div>
 
@@ -16,13 +37,69 @@
             <div class="alert alert-warning">
                 <i class="bi bi-exclamation-triangle me-1"></i>
                 CCTV belum dikonfigurasi. Isi <code>TUYA_ACCESS_ID</code>, <code>TUYA_ACCESS_SECRET</code>,
-                <code>TUYA_REGION</code>, dan <code>TUYA_DEVICE_ID</code> di <code>.env</code>.
+                dan <code>TUYA_REGION</code> di <code>.env</code>.
             </div>
         @endunless
 
+        @if (! $terpilih)
+            <div class="card">
+                <div class="card-body text-center py-5 text-secondary">
+                    <i class="bi bi-camera-video-off fs-1 d-block mb-2"></i>
+                    @if (auth()->user()->role === 'ppk' && ! auth()->user()->ppk_id)
+                        Akun ini belum ditautkan ke PPK. Hubungi admin.
+                    @else
+                        Belum ada kamera yang bisa ditampilkan.
+                        @can('kelola-cctv')
+                            <div class="mt-2"><a href="{{ route('kelola-cctv.index') }}">Pasang kamera ke paket di Kelola CCTV</a>.</div>
+                        @endcan
+                    @endif
+                </div>
+            </div>
+        @else
+        <div class="row g-3">
+            {{-- Daftar kamera: satker → PPK → kamera --}}
+            <div class="col-lg-4 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0"><i class="bi bi-list-ul me-1"></i> Kamera ({{ $jumlah }})</h3>
+                    </div>
+                    <div class="card-body p-0 daftar-kamera" style="max-height: 75vh; overflow-y: auto;">
+                        {{-- list-group .active bawaan Bootstrap biru terang; ikuti palet tema --}}
+                        <style>
+                            .daftar-kamera .list-group-item.active { background-color: var(--bs-primary); border-color: var(--bs-primary); }
+                        </style>
+                        @foreach ($kelompok as $slug => $perPpk)
+                            <div class="px-3 py-2 bg-light border-bottom fw-bold small">
+                                {{ $singkatan[$slug] ?? 'Lainnya' }}
+                                <span class="fw-normal text-secondary">· {{ $namaSatker[$slug] ?? 'Paket tidak ditemukan' }}</span>
+                            </div>
+                            @foreach ($perPpk as $ppk => $kamera)
+                                <div class="px-3 pt-2 small text-secondary">{{ $ppk }}</div>
+                                <div class="list-group list-group-flush">
+                                    @foreach ($kamera as $c)
+                                        <a href="{{ route('cctv.index', ['kamera' => $c->id]) }}"
+                                           class="list-group-item list-group-item-action py-2 {{ $c->id === $terpilih->id ? 'active' : '' }}"
+                                           title="{{ $c->packet?->nmpaket ?? $c->kdpaket }}">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-circle-fill status-titik text-secondary" data-cctv="{{ $c->id }}"
+                                                   style="font-size: .55em;" title="Memeriksa…"></i>
+                                                <span class="fw-semibold text-truncate">{{ $c->nama }}</span>
+                                            </div>
+                                            <div class="small text-truncate opacity-75">{{ $c->lokasi ?: \Illuminate\Support\Str::limit($c->packet?->nmpaket ?? $c->kdpaket, 60) }}</div>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Pemutar kamera terpilih --}}
+            <div class="col-lg-8 col-xl-9">
         <div class="card">
             <div class="card-header d-flex flex-wrap align-items-center gap-2">
-                <h3 class="card-title mb-0"><i class="bi bi-camera-video me-1"></i> Live View</h3>
+                <h3 class="card-title mb-0"><i class="bi bi-camera-video me-1"></i> {{ $terpilih->nama }}</h3>
                 <div class="d-flex flex-wrap gap-1 me-auto" id="kameraInfo">
                     <span id="kameraOnline" class="badge text-bg-secondary" title="Status kamera menurut Tuya Cloud">
                         <i class="bi bi-circle-fill me-1" style="font-size: .55em; vertical-align: middle;"></i>
@@ -45,19 +122,63 @@
                        muted playsinline controls></video>
             </div>
             <div class="card-footer small text-secondary">
+                <div class="mb-1">
+                    <i class="bi bi-box-seam me-1"></i>
+                    @if ($terpilih->packet)
+                        <span class="badge text-bg-secondary">{{ $singkatan[$terpilih->packet->satker_group] ?? '' }}</span>
+                        {{ $terpilih->kdpaket }} — {{ $terpilih->packet->nmpaket }}
+                        · <strong>{{ $terpilih->packet->ppk?->jabatan ?? 'Belum ada PPK' }}</strong>
+                    @else
+                        {{ $terpilih->kdpaket }} (paket tidak ada lagi di data API)
+                    @endif
+                </div>
+                @if ($terpilih->lokasi)<div class="mb-1"><i class="bi bi-geo-alt me-1"></i>{{ $terpilih->lokasi }}</div>@endif
+                @if ($terpilih->keterangan)<div class="mb-1"><i class="bi bi-info-circle me-1"></i>{{ $terpilih->keterangan }}</div>@endif
                 Siaran memakai kuota SIM dan baterai kamera selama diputar; tekan Hentikan bila sudah selesai menonton.
             </div>
         </div>
+            </div>
+        </div>
+        @endif
 
     </div>
 </div>
 
 @endsection
 
+@if ($terpilih)
 @push('scripts')
 <script>
 (() => {
-    const STATUS_URL = @json(route('cctv.status'));
+    // Titik status online di daftar kamera: semua kamera dari satu panggilan Tuya
+    const URL_SEMUA = @json(route('cctv.status-semua'));
+    const INTERVAL_MS = @json(\App\Services\TuyaCameraService::STATUS_CACHE_SECONDS * 1000);
+    if (!@json($configured)) return;
+
+    const cek = async () => {
+        try {
+            const res = await fetch(URL_SEMUA, { headers: { 'Accept': 'application/json' } });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            document.querySelectorAll('.status-titik').forEach(el => {
+                const on = data.online[el.dataset.cctv];
+                el.classList.remove('text-secondary', 'text-success', 'text-danger');
+                el.classList.add(on ? 'text-success' : 'text-danger');
+                el.title = on ? 'Online' : 'Offline';
+            });
+        } catch (e) {
+            document.querySelectorAll('.status-titik').forEach(el => el.title = 'Status tidak diketahui');
+        }
+    };
+
+    cek();
+    setInterval(() => { if (!document.hidden) cek(); }, INTERVAL_MS);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) cek(); });
+})();
+</script>
+<script>
+(() => {
+    const STATUS_URL = @json(route('cctv.status', $terpilih));
     // Sama dengan lama cache status di server; lebih sering pun hanya mendapat hasil yang sama
     const INTERVAL_MS = @json(\App\Services\TuyaCameraService::STATUS_CACHE_SECONDS * 1000);
     if (!@json($configured)) { document.getElementById('kameraInfo').classList.add('d-none'); return; }
@@ -120,7 +241,7 @@
 <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js" crossorigin="anonymous"></script>
 <script>
 (() => {
-    const STREAM_URL = @json(route('cctv.stream'));
+    const STREAM_URL = @json(route('cctv.stream', $terpilih));
     const MAKS_ULANG = 3;
 
     const video = document.getElementById('cctvVideo');
@@ -236,3 +357,4 @@
 })();
 </script>
 @endpush
+@endif

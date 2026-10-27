@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ppk;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,14 +32,25 @@ class UserController extends Controller
             'password.min'      => 'Password minimal 8 karakter.',
             'role.required'     => 'Role wajib dipilih.',
             'role.in'           => 'Role yang dipilih tidak valid.',
+            'ppk_id.required_if' => 'PPK wajib dipilih untuk akun ber-role PPK.',
+            'ppk_id.exists'     => 'PPK yang dipilih tidak ditemukan.',
         ];
+    }
+
+    /**
+     * Akun role "ppk" wajib ditautkan ke satu PPK; role lain tidak punya PPK.
+     */
+    private function ppkRules(): array
+    {
+        return ['nullable', 'required_if:role,ppk', 'integer', 'exists:ppks,id'];
     }
 
     public function index(): View
     {
         $this->authorize();
-        $users = User::orderBy('created_at', 'desc')->get();
-        return view('v_user_index', compact('users'));
+        $users = User::with('ppk')->orderBy('created_at', 'desc')->get();
+        $ppks = Ppk::orderBy('satker')->orderBy('jabatan')->get(['id', 'jabatan', 'satker']);
+        return view('v_user_index', compact('users', 'ppks'));
     }
 
     public function create(): View
@@ -55,6 +67,7 @@ class UserController extends Controller
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', Password::defaults()],
             'role'     => ['required', 'in:' . implode(',', array_keys(User::ROLES))],
+            'ppk_id'   => $this->ppkRules(),
         ], $this->messages());
 
         User::create([
@@ -62,6 +75,7 @@ class UserController extends Controller
             'email'    => $data['email'],
             'password' => Hash::make($data['password']),
             'role'     => $data['role'],
+            'ppk_id'   => $data['role'] === 'ppk' ? $data['ppk_id'] : null,
         ]);
 
         return redirect()->route('users.index')->with('status', 'Akun berhasil dibuat.');
@@ -81,7 +95,10 @@ class UserController extends Controller
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'role'     => ['required', 'in:' . implode(',', array_keys(User::ROLES))],
             'password' => ['nullable', Password::defaults()],
+            'ppk_id'   => $this->ppkRules(),
         ], $this->messages());
+
+        $data['ppk_id'] = $data['role'] === 'ppk' ? $data['ppk_id'] : null;
 
         if ($data['password']) {
             $data['password'] = Hash::make($data['password']);

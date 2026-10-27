@@ -60,9 +60,14 @@
                                                 'admin'   => 'bg-danger',
                                                 'kpisda'  => 'bg-primary',
                                                 'kabalai' => 'bg-success',
+                                                'ppk'     => 'bg-warning',
+                                                'cctv'    => 'bg-info',
                                             ][$user->role] ?? 'bg-secondary';
                                         @endphp
                                         <span class="badge {{ $roleBadge }}">{{ \App\Models\User::ROLES[$user->role] ?? $user->role }}</span>
+                                        @if ($user->role === 'ppk')
+                                            <div class="small {{ $user->ppk ? 'text-secondary' : 'text-danger' }}">{{ $user->ppk?->jabatan ?? 'Belum ditautkan ke PPK' }}</div>
+                                        @endif
                                     </td>
                                     <td>{{ $user->created_at->timezone('Asia/Makassar')->translatedFormat('d M Y H:i') }}</td>
                                     <td>
@@ -72,7 +77,8 @@
                                                 data-id="{{ $user->id }}"
                                                 data-name="{{ $user->name }}"
                                                 data-email="{{ $user->email }}"
-                                                data-role="{{ $user->role }}">
+                                                data-role="{{ $user->role }}"
+                                                data-ppk="{{ $user->ppk_id }}">
                                             <i class="bi bi-pencil-square"></i> Perbarui
                                         </button>
                                         @if ($user->id !== auth()->id())
@@ -136,13 +142,27 @@
                 </div>
                 <div class="mb-2">
                     <label class="form-label">Role</label>
-                    <select name="role" class="form-select" required>
+                    <select name="role" class="form-select pilih-role" required>
                         <option value="" disabled selected>-- Pilih Role --</option>
                         @foreach (\App\Models\User::ROLES as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
-                    <div class="form-text">KPISDA: Agenda KPISDA &middot; Kepala Balai: Agenda Kepala Balai &middot; Super Admin: semua &middot; User: tanpa menu agenda</div>
+                    <div class="form-text">KPISDA: Agenda KPISDA &amp; Kelola CCTV &middot; Kepala Balai: Agenda Kepala Balai &middot; CCTV: hanya halaman CCTV &middot; PPK: hanya CCTV paket PPK-nya &middot; Super Admin: semua &middot; User: tanpa menu agenda</div>
+                </div>
+                <div class="mb-2 mt-3 pilih-ppk d-none">
+                    <label class="form-label">PPK</label>
+                    <select name="ppk_id" class="form-select">
+                        <option value="">-- Pilih PPK --</option>
+                        @foreach ($ppks->groupBy('satker') as $satker => $daftar)
+                            <optgroup label="{{ $satker }}">
+                                @foreach ($daftar as $ppk)
+                                    <option value="{{ $ppk->id }}">{{ $ppk->jabatan }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Akun hanya melihat CCTV di paket milik PPK ini.</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -189,12 +209,26 @@
                 </div>
                 <div class="mb-2">
                     <label class="form-label">Role</label>
-                    <select name="role" id="editRole" class="form-select" required>
+                    <select name="role" id="editRole" class="form-select pilih-role" required>
                         @foreach (\App\Models\User::ROLES as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
-                    <div class="form-text">KPISDA: Agenda KPISDA &middot; Kepala Balai: Agenda Kepala Balai &middot; Super Admin: semua &middot; User: tanpa menu agenda</div>
+                    <div class="form-text">KPISDA: Agenda KPISDA &amp; Kelola CCTV &middot; Kepala Balai: Agenda Kepala Balai &middot; CCTV: hanya halaman CCTV &middot; PPK: hanya CCTV paket PPK-nya &middot; Super Admin: semua &middot; User: tanpa menu agenda</div>
+                </div>
+                <div class="mb-2 mt-3 pilih-ppk d-none">
+                    <label class="form-label">PPK</label>
+                    <select name="ppk_id" id="editPpk" class="form-select">
+                        <option value="">-- Pilih PPK --</option>
+                        @foreach ($ppks->groupBy('satker') as $satker => $daftar)
+                            <optgroup label="{{ $satker }}">
+                                @foreach ($daftar as $ppk)
+                                    <option value="{{ $ppk->id }}">{{ $ppk->jabatan }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Akun hanya melihat CCTV di paket milik PPK ini.</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -231,11 +265,25 @@
     document.addEventListener('DOMContentLoaded', () => {
         const base = @json(url('users'));
 
+        // Pilihan PPK hanya tampil (dan wajib) untuk role PPK
+        const aturPpk = (form) => {
+            const role = form.querySelector('.pilih-role').value;
+            const blok = form.querySelector('.pilih-ppk');
+            const select = blok.querySelector('select');
+            blok.classList.toggle('d-none', role !== 'ppk');
+            select.required = role === 'ppk';
+            if (role !== 'ppk') select.value = '';
+        };
+        document.querySelectorAll('.pilih-role').forEach(sel => {
+            sel.addEventListener('change', () => aturPpk(sel.form));
+        });
+
         // Reset modal Tambah saat ditutup
         const modalTambah = document.getElementById('modalTambah');
         if (modalTambah) {
             modalTambah.addEventListener('hidden.bs.modal', () => {
                 document.querySelector('#modalTambah form').reset();
+                aturPpk(document.querySelector('#modalTambah form'));
                 document.getElementById('errorTambah')?.remove();
             });
         }
@@ -255,7 +303,9 @@
                 document.getElementById('editName').value = b.dataset.name || '';
                 document.getElementById('editEmail').value = b.dataset.email || '';
                 document.getElementById('editRole').value = b.dataset.role || '';
+                document.getElementById('editPpk').value = b.dataset.ppk || '';
                 document.getElementById('editPassword').value = '';
+                aturPpk(document.getElementById('formEdit'));
             });
         }
 
@@ -272,7 +322,7 @@
         // Validasi gagal: buka lagi modal yang tadi dikirim beserta isian sebelumnya (password tidak ikut).
         @php
             $inputLama = $errors->any()
-                ? ['form' => old('_form'), 'name' => old('name'), 'email' => old('email'), 'role' => old('role'), '_user_id' => old('_user_id')]
+                ? ['form' => old('_form'), 'name' => old('name'), 'email' => old('email'), 'role' => old('role'), 'ppk_id' => old('ppk_id'), '_user_id' => old('_user_id')]
                 : [];
         @endphp
         const lama = @json($inputLama);
@@ -282,6 +332,8 @@
             f.querySelector('[name=name]').value = lama.name || '';
             f.querySelector('[name=email]').value = lama.email || '';
             if (lama.role) f.querySelector('[name=role]').value = lama.role;
+            aturPpk(f);
+            f.querySelector('[name=ppk_id]').value = lama.ppk_id || '';
             bootstrap.Modal.getOrCreateInstance(modalTambah).show();
         } else if (gagal === 'edit' && lama._user_id) {
             document.getElementById('formEdit').action = base + '/' + lama._user_id;
@@ -289,6 +341,8 @@
             document.getElementById('editName').value = lama.name || '';
             document.getElementById('editEmail').value = lama.email || '';
             document.getElementById('editRole').value = lama.role || '';
+            aturPpk(document.getElementById('formEdit'));
+            document.getElementById('editPpk').value = lama.ppk_id || '';
             bootstrap.Modal.getOrCreateInstance(modalEdit).show();
         }
     });

@@ -203,6 +203,10 @@ return [
         'penanggung_jawab' => 'penanggung jawab',
         'deadline' => 'deadline',
         'status' => 'status',
+        'device_id' => 'kamera',
+        'kdpaket' => 'paket',
+        'lokasi' => 'lokasi',
+        'ppk_id' => 'PPK',
     ],
 
 ];

@@ -5,6 +5,7 @@ use App\Http\Controllers\AgendaRapatController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CctvController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KelolaCctvController;
 use App\Http\Controllers\PaguController;
 use App\Http\Controllers\PacketsInpresController;
 use App\Http\Controllers\PacketsRegularController;
@@ -29,8 +30,9 @@ Route::post('/logout', [AuthController::class, 'logout'])
 // CCTV: terbuka untuk semua akun, termasuk akun khusus CCTV (role "cctv").
 Route::middleware('auth')->group(function () {
     Route::get('/cctv', [CctvController::class, 'index'])->name('cctv.index');
-    Route::get('/cctv/stream', [CctvController::class, 'stream'])->name('cctv.stream');
-    Route::get('/cctv/status', [CctvController::class, 'status'])->name('cctv.status');
+    Route::get('/cctv/status', [CctvController::class, 'statusSemua'])->name('cctv.status-semua');
+    Route::get('/cctv/{cctv}/stream', [CctvController::class, 'stream'])->name('cctv.stream');
+    Route::get('/cctv/{cctv}/status', [CctvController::class, 'status'])->name('cctv.status');
 });
 
 // Selain CCTV: akun role "cctv" dialihkan ke halaman CCTV.
@@ -51,6 +53,13 @@ Route::middleware(['auth', BlockCctvOnly::class])->group(function () {
 
     Route::get('/packets-reguler', [PacketsRegularController::class, 'index'])->name('packets-reguler.index');
     Route::get('/packets-inpres', [PacketsInpresController::class, 'index'])->name('packets-inpres.index');
+
+    Route::middleware('can:kelola-cctv')->group(function () {
+        Route::get('/kelola-cctv', [KelolaCctvController::class, 'index'])->name('kelola-cctv.index');
+        Route::post('/kelola-cctv', [KelolaCctvController::class, 'store'])->name('kelola-cctv.store');
+        Route::put('/kelola-cctv/{cctv}', [KelolaCctvController::class, 'update'])->name('kelola-cctv.update');
+        Route::delete('/kelola-cctv/{cctv}', [KelolaCctvController::class, 'destroy'])->name('kelola-cctv.destroy');
+    });
 
     Route::middleware('can:agenda-kpisda')->group(function () {
         Route::get('/agenda-rapat', [AgendaRapatController::class, 'index'])->name('agenda-rapat.index');
