@@ -98,6 +98,15 @@ The dashboard also shows a static, non-dismissible reminder banner at the very t
 
 **Daftar Paket Inpres** (`/packets-inpres`, `PacketsInpresController`, `v_packets_inpres.blade.php`, admin-only like Daftar Paket Reguler — requested for Bayu's admin account) lists the Inpres packages per satker (OP and PJPA) straight from the API-synced `packets` table; no master table. SIHKA has no "Inpres" flag, so packages are recognised by **kdpaket prefix** in `config/inpres.php` (`prefixes` keyed by satker slug): OP `03.694136.FC.7695.CDR.008.`, PJPA `03.694244.FC.7691.RBS.005.` and `03.694244.FC.7694.RBS.006.` (23 + 23 packages, all new in the Oct 2026 API data and still without PPK at the time). Add a prefix there if a new Inpres RO appears. Columns: kode, nama, PPK jabatan (or "Belum ditetapkan"), pagu, realisasi, Keu %, Fis %, with a per-satker total row using the standard Keu/Fis conventions; header shows the "belum ada PPK" count and a "Tetapkan PPK" link to `/satker/{slug}`. Same client-side search as Paket Reguler, plus a **PPK filter** dropdown (`#filterPpk`, options grouped per satker from the PPKs that actually have Inpres packages, plus "Belum ditetapkan" while any package lacks a PPK; matches `data-ppk` = jabatan or `-`). Search and PPK combine with AND; satker sections with no match are hidden and the total row is recomputed client-side from the visible rows (`data-pagu`/`data-real`/`data-fis`, same Keu/Fis conventions) with an "(N paket tersaring)" note.
 
+## Monitoring Pelaporan Kekeringan
+
+`/pelaporan-kekeringan` (`PelaporanKekeringanController`, `v_pelaporan_kekeringan.blade.php`, Super Admin only — requested for Bayu's account; menu under Daftar Paket Inpres). Recreates the user's "List Pelaporan" sheet: TRC 1–3 with 13 Wakil Kordinator Wilayah. **Names, jabatan and TRC grouping are static** in `config/kekeringan.php`; each person has a stable `kode` (`D.1.a` …) that keys the stored status — don't renumber existing codes or their status is orphaned.
+
+- Tables: `pelaporan_kekeringan` (`kode` unique, `sudah_lapor`, `kejadian_baru`, `penanganan`; rows created on first save) and singleton `pelaporan_kekeringan_info` (`tanggal`, `jam`, entered as WITA, no conversion) shown as "Status : 27 Oktober Pukul 12:00 WITA".
+- Editing is client-side then one **Simpan** (`PUT`, bulk like Revisi Pagu): status and jenis are hidden `.btn-check` checkboxes with icon labels (✗ red / ☑ green; empty jenis = faint square). Ticking a jenis auto-ticks status (also enforced server-side); unticking status clears that row's jenis. "Sekarang" fills the current WITA date/time.
+- **Refresh** (`POST /pelaporan-kekeringan/reset`, red confirm modal) sets every status *and* jenis back to false; the date/time is kept.
+- **Unduh Gambar** captures `#areaLaporan` with html2canvas. html2canvas draws the visually-hidden `.btn-check` inputs anyway, so `onclone` must hide them (and the faint squares). Icons in that area use hard-coded red/green with a text-stroke, deliberately not the muted theme colors, to match the original sheet.
+
 ## Progress e-Monitoring Report (`progress:report` command)
 
 **Command**: `php artisan progress:report`

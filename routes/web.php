@@ -10,6 +10,7 @@ use App\Http\Controllers\PaguController;
 use App\Http\Controllers\PacketsInpresController;
 use App\Http\Controllers\PacketsRegularController;
 use App\Http\Controllers\PekerjaanRumahController;
+use App\Http\Controllers\PelaporanKekeringanController;
 use App\Http\Controllers\PekerjaanRumahKepalaBalaiController;
 use App\Http\Controllers\PpkController;
 use App\Http\Controllers\UserController;
@@ -53,6 +54,11 @@ Route::middleware(['auth', BlockCctvOnly::class])->group(function () {
 
     Route::get('/packets-reguler', [PacketsRegularController::class, 'index'])->name('packets-reguler.index');
     Route::get('/packets-inpres', [PacketsInpresController::class, 'index'])->name('packets-inpres.index');
+
+    // Monitoring Pelaporan Kekeringan (Super Admin; dicek di controller)
+    Route::get('/pelaporan-kekeringan', [PelaporanKekeringanController::class, 'index'])->name('pelaporan-kekeringan.index');
+    Route::put('/pelaporan-kekeringan', [PelaporanKekeringanController::class, 'update'])->name('pelaporan-kekeringan.update');
+    Route::post('/pelaporan-kekeringan/reset', [PelaporanKekeringanController::class, 'reset'])->name('pelaporan-kekeringan.reset');
 
     Route::middleware('can:kelola-cctv')->group(function () {
         Route::get('/kelola-cctv', [KelolaCctvController::class, 'index'])->name('kelola-cctv.index');

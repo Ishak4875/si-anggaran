@@ -207,6 +207,8 @@ return [
         'kdpaket' => 'paket',
         'lokasi' => 'lokasi',
         'ppk_id' => 'PPK',
+        'tanggal' => 'tanggal',
+        'jam' => 'jam',
     ],
 
 ];

@@ -37,6 +37,13 @@
                         <p>Daftar Paket Inpres</p>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('pelaporan-kekeringan.index') }}"
+                       class="nav-link {{ request()->routeIs('pelaporan-kekeringan.*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-droplet-half"></i>
+                        <p>Monitoring Pelaporan Kekeringan</p>
+                    </a>
+                </li>
             @endif
 
             {{-- Paket Kegiatan per Satker --}}
