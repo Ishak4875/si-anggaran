@@ -39,26 +39,18 @@ class CctvController extends Controller
     }
 
     /**
-     * Gerakkan kamera: arah 0–7 (lihat TuyaCameraService::ptzMove) atau "stop".
+     * Status kamera: online dan baterai (dipanggil berkala oleh halaman).
      */
-    public function ptz(Request $request): JsonResponse
+    public function status(): JsonResponse
     {
-        $data = $request->validate([
-            'arah' => ['required', 'in:0,1,2,3,4,5,6,7,stop'],
-        ]);
-
         if (! $this->tuya->isConfigured()) {
             return response()->json(['message' => 'CCTV belum dikonfigurasi (TUYA_* di .env).'], 503);
         }
 
         try {
-            $data['arah'] === 'stop'
-                ? $this->tuya->ptzStop()
-                : $this->tuya->ptzMove((int) $data['arah']);
-
-            return response()->json(['ok' => true]);
+            return response()->json($this->tuya->deviceStatus());
         } catch (RuntimeException $e) {
-            return response()->json(['message' => 'Gagal menggerakkan kamera: ' . $e->getMessage()], 502);
+            return response()->json(['message' => 'Gagal membaca status kamera: ' . $e->getMessage()], 502);
         }
     }
 }

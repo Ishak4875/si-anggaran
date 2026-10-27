@@ -29,7 +29,9 @@ Route::post('/logout', [AuthController::class, 'logout'])
 // CCTV: terbuka untuk semua akun, termasuk akun khusus CCTV (role "cctv").
 Route::middleware('auth')->group(function () {
     Route::get('/cctv', [CctvController::class, 'index'])->name('cctv.index');
-    Route::get('/cctv/stream', [CctvController::class, 'stream'])->name('cctv.stream');    Route::post('/cctv/ptz', [CctvController::class, 'ptz'])->name('cctv.ptz');});
+    Route::get('/cctv/stream', [CctvController::class, 'stream'])->name('cctv.stream');
+    Route::get('/cctv/status', [CctvController::class, 'status'])->name('cctv.status');
+});
 
 // Selain CCTV: akun role "cctv" dialihkan ke halaman CCTV.
 Route::middleware(['auth', BlockCctvOnly::class])->group(function () {

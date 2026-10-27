@@ -163,7 +163,10 @@
                         alt="Logo BWS Sulawesi IV" class="brand-image opacity-75 shadow" />
                     <!--end::Brand Image-->
                     <!--begin::Brand Text-->
-                    <span class="brand-text fw-light">PROGRESSO</span>
+                    <span class="brand-text fw-light d-inline-flex flex-column lh-1 align-middle">
+                        <span>PROGRESSO</span>
+                        <small class="opacity-75 mt-1" style="font-size: .62rem; letter-spacing: .04em;">BWS SULAWESI IV KENDARI</small>
+                    </span>
                     <!--end::Brand Text-->
                 </a>
                 <!--end::Brand Link-->
@@ -197,15 +200,8 @@
         <!--end::App Main-->
         <!--begin::Footer-->
         <footer class="app-footer">
-            <!--begin::To the end-->
-            <div class="float-end d-none d-sm-inline">Anything you want</div>
-            <!--end::To the end-->
             <!--begin::Copyright-->
-            <strong>
-                Copyright &copy; 2014-2026&nbsp;
-                <a href="https://adminlte.io" class="text-decoration-none">AdminLTE.io</a>.
-            </strong>
-            All rights reserved.
+            <strong>Created by Ishak &middot; KPISDA BWS Sulawesi IV Kendari &copy; 2026</strong>
             <!--end::Copyright-->
         </footer>
         <!--end::Footer-->
