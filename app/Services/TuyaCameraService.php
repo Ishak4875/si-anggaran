@@ -170,6 +170,19 @@ class TuyaCameraService
         $nonce = (string) Str::uuid();
         $json = $body === null ? '' : json_encode($body);
 
+        // Tuya menandatangani URL dengan parameter query terurut abjad; tanpa ini
+        // permintaan dengan >1 parameter ditolak "sign invalid" (1004).
+        if (str_contains($path, '?')) {
+            [$jalur, $query] = explode('?', $path, 2);
+            $param = [];
+            foreach (explode('&', $query) as $pasangan) {
+                [$k, $v] = array_pad(explode('=', $pasangan, 2), 2, '');
+                $param[$k] = $v;
+            }
+            ksort($param, SORT_STRING);
+            $path = $jalur . '?' . implode('&', array_map(fn ($k, $v) => $k . '=' . $v, array_keys($param), $param));
+        }
+
         $stringToSign = $method . "\n"
             . ($json === '' ? self::EMPTY_BODY_HASH : hash('sha256', $json)) . "\n"
             . "\n"
