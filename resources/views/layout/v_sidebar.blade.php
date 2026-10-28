@@ -102,13 +102,20 @@
                 </a>
             </li>
 
-            {{-- Kelola CCTV (KPISDA & Super Admin) --}}
+            {{-- Kelola CCTV & Kelola CCTV Pekerjaan (Super Admin) --}}
             @can('kelola-cctv')
             <li class="nav-item">
                 <a href="{{ route('kelola-cctv.index') }}"
                    class="nav-link {{ request()->routeIs('kelola-cctv.*') ? 'active' : '' }}">
                     <i class="nav-icon bi bi-camera-reels"></i>
                     <p>Kelola CCTV</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('kelola-cctv-pekerjaan.index') }}"
+                   class="nav-link {{ request()->routeIs('kelola-cctv-pekerjaan.*') ? 'active' : '' }}">
+                    <i class="nav-icon bi bi-diagram-3"></i>
+                    <p>Kelola CCTV Pekerjaan</p>
                 </a>
             </li>
             @endcan

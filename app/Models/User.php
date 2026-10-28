@@ -82,11 +82,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Kelola CCTV (tambah/pindah/hapus kamera): KPISDA, dan Super Admin.
+     * Kelola CCTV & Kelola CCTV Pekerjaan (tambah/pindah/hapus kamera): Super Admin saja.
      */
     public function canManageCctv(): bool
     {
-        return in_array($this->role, ['admin', 'kpisda'], true);
+        return $this->isAdmin();
     }
 
     /**

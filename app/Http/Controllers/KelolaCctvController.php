@@ -14,11 +14,14 @@ use RuntimeException;
 
 /**
  * Kelola CCTV: pasang kamera Tuya ke paket (satu paket bisa banyak kamera),
- * pindahkan ke paket lain, atau hapus. Akses: KPISDA & Super Admin (gate kelola-cctv).
+ * pindahkan ke paket lain, atau hapus. Akses: Super Admin (gate kelola-cctv).
  */
 class KelolaCctvController extends Controller
 {
-    public function __construct(private TuyaCameraService $tuya)
+    /** Halaman tujuan setelah simpan/hapus (dipakai ulang oleh Kelola CCTV Pekerjaan). */
+    protected string $routeIndex = 'kelola-cctv.index';
+
+    public function __construct(protected TuyaCameraService $tuya)
     {
     }
 
@@ -51,24 +54,24 @@ class KelolaCctvController extends Controller
     {
         Cctv::create($this->validated($request));
 
-        return redirect()->route('kelola-cctv.index')->with('status', 'Kamera berhasil ditambahkan.');
+        return redirect()->route($this->routeIndex)->with('status', 'Kamera berhasil ditambahkan.');
     }
 
     public function update(Request $request, Cctv $cctv): RedirectResponse
     {
         $cctv->update($this->validated($request, $cctv));
 
-        return redirect()->route('kelola-cctv.index')->with('status', 'Kamera berhasil diperbarui.');
+        return redirect()->route($this->routeIndex)->with('status', 'Kamera berhasil diperbarui.');
     }
 
     public function destroy(Cctv $cctv): RedirectResponse
     {
         $cctv->delete();
 
-        return redirect()->route('kelola-cctv.index')->with('status', 'Kamera berhasil dihapus.');
+        return redirect()->route($this->routeIndex)->with('status', 'Kamera berhasil dihapus.');
     }
 
-    private function validated(Request $request, ?Cctv $cctv = null): array
+    protected function validated(Request $request, ?Cctv $cctv = null): array
     {
         $deviceRules = ['required', 'string', 'max:64', Rule::unique('cctvs', 'device_id')->ignore($cctv?->id)];
 

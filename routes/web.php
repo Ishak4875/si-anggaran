@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CctvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KelolaCctvController;
+use App\Http\Controllers\KelolaCctvPekerjaanController;
 use App\Http\Controllers\PaguController;
 use App\Http\Controllers\PacketsInpresController;
 use App\Http\Controllers\PacketsRegularController;
@@ -65,6 +66,11 @@ Route::middleware(['auth', BlockCctvOnly::class])->group(function () {
         Route::post('/kelola-cctv', [KelolaCctvController::class, 'store'])->name('kelola-cctv.store');
         Route::put('/kelola-cctv/{cctv}', [KelolaCctvController::class, 'update'])->name('kelola-cctv.update');
         Route::delete('/kelola-cctv/{cctv}', [KelolaCctvController::class, 'destroy'])->name('kelola-cctv.destroy');
+
+        Route::get('/kelola-cctv-pekerjaan', [KelolaCctvPekerjaanController::class, 'index'])->name('kelola-cctv-pekerjaan.index');
+        Route::post('/kelola-cctv-pekerjaan', [KelolaCctvPekerjaanController::class, 'store'])->name('kelola-cctv-pekerjaan.store');
+        Route::put('/kelola-cctv-pekerjaan/{cctv}', [KelolaCctvPekerjaanController::class, 'update'])->name('kelola-cctv-pekerjaan.update');
+        Route::delete('/kelola-cctv-pekerjaan/{cctv}', [KelolaCctvPekerjaanController::class, 'destroy'])->name('kelola-cctv-pekerjaan.destroy');
     });
 
     Route::middleware('can:agenda-kpisda')->group(function () {
