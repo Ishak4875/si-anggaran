@@ -14,8 +14,6 @@
                 <small class="text-secondary">
                     @if (auth()->user()->role === 'ppk')
                         Kamera di paket {{ auth()->user()->ppk?->jabatan ?? 'PPK Anda' }}.
-                    @else
-                        Siaran langsung kamera per paket, dikelompokkan per satker dan PPK.
                     @endif
                 </small>
             </div>
