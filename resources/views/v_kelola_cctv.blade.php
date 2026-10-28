@@ -11,7 +11,6 @@
         <div class="row align-items-center">
             <div class="col-sm-8">
                 <h3 class="mb-0">Kelola CCTV</h3>
-                <small class="text-secondary">Pasang kamera ke paket, pindahkan ke paket lain bila paket selesai, atau hapus.</small>
             </div>
             <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
                 <a href="{{ route('cctv.index') }}" class="btn btn-outline-secondary">
