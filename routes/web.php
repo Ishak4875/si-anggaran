@@ -33,6 +33,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::middleware('auth')->group(function () {
     Route::get('/cctv', [CctvController::class, 'index'])->name('cctv.index');
     Route::get('/cctv/status', [CctvController::class, 'statusSemua'])->name('cctv.status-semua');
+    Route::get('/cctv/paket', [CctvController::class, 'paket'])->name('cctv.paket');
     Route::get('/cctv/{cctv}/stream', [CctvController::class, 'stream'])->name('cctv.stream');
     Route::get('/cctv/{cctv}/status', [CctvController::class, 'status'])->name('cctv.status');
 });

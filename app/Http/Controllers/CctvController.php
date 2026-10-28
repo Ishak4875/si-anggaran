@@ -53,6 +53,41 @@ class CctvController extends Controller
     }
 
     /**
+     * Daftar paket yang sudah ada kamera aktifnya, beserta PPK (paket tanpa kamera tidak tampil).
+     * Ikut aturan visibleTo: role cctv melihat semua, role ppk hanya paket PPK-nya.
+     */
+    public function paket(Request $request)
+    {
+        $cctvs = Cctv::visibleTo($request->user())
+            ->where('aktif', true)
+            ->whereHas('packet')
+            ->with('packet.ppk')
+            ->orderBy('nama')
+            ->get();
+
+        $kelompok = [];
+        foreach ($cctvs->groupBy('kdpaket') as $kamera) {
+            $paket = $kamera->first()->packet;
+            $kelompok[$paket->satker_group][] = ['paket' => $paket, 'kamera' => $kamera];
+        }
+
+        $urut = array_flip(array_keys(Satker::groups()));
+        uksort($kelompok, fn ($a, $b) => ($urut[$a] ?? 99) <=> ($urut[$b] ?? 99));
+        foreach ($kelompok as &$daftar) {
+            usort($daftar, fn ($a, $b) => [$a['paket']->ppk?->jabatan ?? '~', $a['paket']->kdpaket]
+                <=> [$b['paket']->ppk?->jabatan ?? '~', $b['paket']->kdpaket]);
+        }
+        unset($daftar);
+
+        return view('v_cctv_paket', [
+            'kelompok' => $kelompok,
+            'namaSatker' => Satker::getNamesMap(),
+            'jumlahPaket' => $cctvs->pluck('kdpaket')->unique()->count(),
+            'jumlahKamera' => $cctvs->count(),
+        ]);
+    }
+
+    /**
      * URL siaran baru untuk pemutar (dipanggil saat tombol Putar ditekan / URL kedaluwarsa).
      */
     public function stream(Request $request, Cctv $cctv): JsonResponse

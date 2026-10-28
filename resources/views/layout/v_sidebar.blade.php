@@ -96,9 +96,18 @@
             {{-- CCTV Biota --}}
             <li class="nav-item">
                 <a href="{{ route('cctv.index') }}"
-                   class="nav-link {{ request()->routeIs('cctv.*') ? 'active' : '' }}">
+                   class="nav-link {{ request()->routeIs('cctv.*') && ! request()->routeIs('cctv.paket') ? 'active' : '' }}">
                     <i class="nav-icon bi bi-camera-video"></i>
                     <p>CCTV Biota</p>
+                </a>
+            </li>
+
+            {{-- Daftar Paket CCTV (semua akun; akun PPK hanya paket PPK-nya) --}}
+            <li class="nav-item">
+                <a href="{{ route('cctv.paket') }}"
+                   class="nav-link {{ request()->routeIs('cctv.paket') ? 'active' : '' }}">
+                    <i class="nav-icon bi bi-card-checklist"></i>
+                    <p>Daftar Paket CCTV</p>
                 </a>
             </li>
 
