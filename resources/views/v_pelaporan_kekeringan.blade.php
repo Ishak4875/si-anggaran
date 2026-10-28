@@ -165,6 +165,12 @@
 @push('scripts')
 <style>
     .tabel-lapor { color: #212529; }
+    /* Garis hitam seperti lembar aslinya; warna garis tema (krem pucat) hampir tak terlihat di gambar unduhan */
+    /* Garis hitam penuh di setiap sel (4 sisi). Di .table-bordered garis mendatar & bingkai luar
+       milik baris/tabel, dan html2canvas tidak menggambar garis baris dengan benar. */
+    .tabel-lapor { border: 0 !important; border-collapse: collapse; }
+    .tabel-lapor > :not(caption) > * { border: 0 !important; }
+    .tabel-lapor > :not(caption) > * > * { border: 1px solid #000 !important; }
     .tabel-lapor th { background: #fff; }
     .tabel-lapor .baris-grup td { background: #d9e1f2; }
     .tombol-lapor { cursor: pointer; font-size: 1.15rem; line-height: 1; padding: .1rem .35rem; margin: 0; user-select: none; }
@@ -187,6 +193,7 @@
     const teksStatus = document.getElementById('teksStatus');
     const belum = document.getElementById('belumDisimpan');
 
+    const LEBAR_GAMBAR = 1150; // px, lebar area saat diunduh sebagai gambar
     const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
     // "27 Oktober Pukul 12:00 WITA", ikut berubah saat tanggal/jam diubah
@@ -226,9 +233,30 @@
         html2canvas(area, {
             scale: 2,
             backgroundColor: '#ffffff',
+            // Lebar tetap supaya nama/jabatan tidak terlipat walau layar sempit
+            windowWidth: Math.max(window.innerWidth, LEBAR_GAMBAR + 200),
             onclone: (doc) => {
-                doc.querySelectorAll('#areaLaporan .btn-check').forEach(el => el.style.display = 'none');
-                doc.querySelectorAll('#areaLaporan .ikon-kosong').forEach(el => el.style.visibility = 'hidden');
+                const salinan = doc.getElementById('areaLaporan');
+                salinan.style.width = LEBAR_GAMBAR + 'px';
+                salinan.style.minWidth = LEBAR_GAMBAR + 'px';
+                salinan.querySelectorAll('td, th').forEach(el => el.style.whiteSpace = 'nowrap');
+                salinan.querySelectorAll('.btn-check').forEach(el => el.style.display = 'none');
+                salinan.querySelectorAll('.ikon-kosong').forEach(el => el.style.visibility = 'hidden');
+
+                // html2canvas menggambar garis menembus sel <th rowspan>; ganti dengan dua sel
+                // biasa tanpa garis pemisah (judul di sel bawah), mirip sel gabungan.
+                const [atas, bawah] = salinan.querySelectorAll('thead tr');
+                [...atas.querySelectorAll('th[rowspan]')].reverse().forEach(th => {
+                    const sel = doc.createElement('th');
+                    sel.className = th.className;
+                    sel.style.cssText = th.style.cssText;
+                    sel.style.setProperty('border-top', '0', 'important');
+                    sel.textContent = th.textContent;
+                    th.removeAttribute('rowspan');
+                    th.textContent = '';
+                    th.style.setProperty('border-bottom', '0', 'important');
+                    bawah.insertBefore(sel, bawah.firstChild);
+                });
             },
         }).then((canvas) => new Promise((resolve) => {
             canvas.toBlob((blob) => {
