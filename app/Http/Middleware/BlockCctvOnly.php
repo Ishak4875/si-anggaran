@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Akun ber-role "cctv" hanya boleh ke halaman CCTV Biota: permintaan GET ke
- * halaman lain dialihkan ke sana (termasuk dashboard setelah login), selainnya 403.
+ * Akun ber-role "cctv"/"ppk" hanya boleh ke halaman CCTV: permintaan GET ke
+ * halaman lain dialihkan ke Daftar Paket CCTV (termasuk dashboard setelah login), selainnya 403.
  */
 class BlockCctvOnly
 {
@@ -16,7 +16,7 @@ class BlockCctvOnly
     {
         if ($request->user()?->isCctvOnly()) {
             return $request->isMethod('GET')
-                ? redirect()->route('cctv.index')
+                ? redirect()->route('cctv.paket')
                 : abort(403);
         }
 

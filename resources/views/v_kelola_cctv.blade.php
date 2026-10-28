@@ -13,7 +13,7 @@
                 <h3 class="mb-0">Kelola CCTV</h3>
             </div>
             <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
-                <a href="{{ route('cctv.index') }}" class="btn btn-outline-secondary">
+                <a href="{{ route('cctv.paket') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-camera-video"></i> Lihat CCTV
                 </a>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">

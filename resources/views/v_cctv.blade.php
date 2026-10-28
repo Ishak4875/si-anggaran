@@ -1,5 +1,5 @@
 @extends('layout.v_layout')
-@section('title', 'CCTV Biota')
+@section('title', $paket ? 'CCTV Paket' : 'CCTV Biota')
 @section('content')
 
 @php
@@ -10,20 +10,25 @@
     <div class="container-fluid">
         <div class="row align-items-center">
             <div class="col-sm-8">
-                <h3 class="mb-0">CCTV Biota</h3>
+                <h3 class="mb-0">{{ $paket ? 'CCTV Paket' : 'CCTV Biota' }}</h3>
                 <small class="text-secondary">
-                    @if (auth()->user()->role === 'ppk')
+                    @if ($paket)
+                        {{ $paket->kdpaket }} — {{ $paket->nmpaket }} · {{ $paket->ppk?->jabatan ?? 'Belum ada PPK' }}
+                    @elseif (auth()->user()->role === 'ppk')
                         Kamera di paket {{ auth()->user()->ppk?->jabatan ?? 'PPK Anda' }}.
                     @endif
                 </small>
             </div>
-            @can('kelola-cctv')
-                <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
+            <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
+                <a href="{{ route('cctv.paket') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Daftar Paket
+                </a>
+                @can('kelola-cctv')
                     <a href="{{ route('kelola-cctv.index') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-camera-reels"></i> Kelola CCTV
                     </a>
-                </div>
-            @endcan
+                @endcan
+            </div>
         </div>
     </div>
 </div>
@@ -75,7 +80,7 @@
                                 <div class="px-3 pt-2 small text-secondary">{{ $ppk }}</div>
                                 <div class="list-group list-group-flush">
                                     @foreach ($kamera as $c)
-                                        <a href="{{ route('cctv.index', ['kamera' => $c->id]) }}"
+                                        <a href="{{ route('cctv.index', array_filter(['paket' => $paket?->kdpaket, 'kamera' => $c->id])) }}"
                                            class="list-group-item list-group-item-action py-2 {{ $c->id === $terpilih->id ? 'active' : '' }}"
                                            title="{{ $c->packet?->nmpaket ?? $c->kdpaket }}">
                                             <div class="d-flex align-items-center gap-2">

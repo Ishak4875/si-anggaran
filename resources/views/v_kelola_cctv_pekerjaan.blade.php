@@ -24,7 +24,7 @@
                 <small class="text-secondary">Pemetaan kamera per PPK dan paket pekerjaan. Akun PPK hanya melihat kamera di paket PPK-nya sendiri.</small>
             </div>
             <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
-                <a href="{{ route('cctv.index') }}" class="btn btn-outline-secondary">
+                <a href="{{ route('cctv.paket') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-camera-video"></i> Lihat CCTV
                 </a>
             </div>

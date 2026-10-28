@@ -5,16 +5,11 @@
 <div class="app-content-header">
     <div class="container-fluid">
         <div class="row align-items-center">
-            <div class="col-sm-8">
+            <div class="col-12">
                 <h3 class="mb-0">Daftar Paket CCTV</h3>
                 <small class="text-secondary">
-                    Paket pekerjaan yang sudah terpasang CCTV, beserta PPK-nya ({{ $jumlahPaket }} paket, {{ $jumlahKamera }} kamera).
+                    Paket pekerjaan yang sudah terpasang CCTV, beserta PPK-nya ({{ $jumlahPaket }} paket, {{ $jumlahKamera }} kamera). Klik paket untuk melihat CCTV-nya.
                 </small>
-            </div>
-            <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
-                <a href="{{ route('cctv.index') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-camera-video"></i> Lihat CCTV
-                </a>
             </div>
         </div>
     </div>
@@ -64,11 +59,12 @@
                                             $cari = collect([$p->kdpaket, $p->nmpaket, $p->ppk?->jabatan, $p->ppk?->nama])
                                                 ->merge($baris['kamera']->pluck('nama'))->implode(' ');
                                         @endphp
-                                        <tr data-cari="{{ \Illuminate\Support\Str::lower($cari) }}">
+                                        <tr data-cari="{{ \Illuminate\Support\Str::lower($cari) }}"
+                                            data-href="{{ route('cctv.index', ['paket' => $p->kdpaket]) }}" class="baris-paket" style="cursor: pointer;">
                                             <td class="text-center nomor"></td>
                                             <td>
                                                 <span class="small text-secondary">{{ $p->kdpaket }}</span>
-                                                <div>{{ $p->nmpaket }}</div>
+                                                <div><a href="{{ route('cctv.index', ['paket' => $p->kdpaket]) }}" class="text-decoration-none">{{ $p->nmpaket }}</a></div>
                                             </td>
                                             <td>
                                                 @if ($p->ppk)
@@ -80,7 +76,7 @@
                                             </td>
                                             <td>
                                                 @foreach ($baris['kamera'] as $c)
-                                                    <a href="{{ route('cctv.index', ['kamera' => $c->id]) }}" class="d-block text-decoration-none">
+                                                    <a href="{{ route('cctv.index', ['paket' => $p->kdpaket, 'kamera' => $c->id]) }}" class="d-block text-decoration-none">
                                                         <i class="bi bi-camera-video me-1"></i>{{ $c->nama }}
                                                     </a>
                                                     @if ($c->lokasi)<div class="small text-secondary ms-3">{{ $c->lokasi }}</div>@endif
@@ -126,6 +122,11 @@
 
         input.addEventListener('input', saring);
         saring();
+
+        // Klik di mana saja pada baris paket membuka CCTV paket tersebut
+        document.querySelectorAll('.baris-paket').forEach(tr => tr.addEventListener('click', (ev) => {
+            if (!ev.target.closest('a')) location.href = tr.dataset.href;
+        }));
     })();
 </script>
 @endpush

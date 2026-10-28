@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cctv;
+use App\Models\Packet;
 use App\Services\TuyaCameraService;
 use App\Support\Satker;
 use Illuminate\Http\JsonResponse;
@@ -17,11 +18,15 @@ class CctvController extends Controller
 
     /**
      * Daftar kamera yang boleh dilihat (satker → PPK → paket) + pemutar kamera terpilih.
+     * ?paket={kdpaket} (dari Daftar Paket CCTV) membatasi ke kamera paket itu saja.
      */
     public function index(Request $request)
     {
+        $kdpaket = $request->query('paket');
+
         $cctvs = Cctv::visibleTo($request->user())
             ->where('aktif', true)
+            ->when($kdpaket, fn ($q) => $q->where('kdpaket', $kdpaket))
             ->with('packet.ppk')
             ->orderBy('nama')
             ->get();
@@ -49,6 +54,7 @@ class CctvController extends Controller
             'namaSatker' => Satker::getNamesMap(),
             'terpilih' => $terpilih,
             'jumlah' => $cctvs->count(),
+            'paket' => $kdpaket ? Packet::with('ppk')->where('kdpaket', $kdpaket)->first() : null,
         ]);
     }
 
