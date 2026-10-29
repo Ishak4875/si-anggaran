@@ -31,7 +31,7 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
                         <input type="text" id="cariPaket" class="form-control" autocomplete="off"
-                               placeholder="Cari kode paket, nama paket, PPK, atau kamera…">
+                               placeholder="Cari nama paket…">
                     </div>
                 </div>
             </div>
@@ -54,12 +54,8 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($daftar as $baris)
-                                        @php
-                                            $p = $baris['paket'];
-                                            $cari = collect([$p->kdpaket, $p->nmpaket, $p->ppk?->jabatan, $p->ppk?->nama])
-                                                ->merge($baris['kamera']->pluck('nama'))->implode(' ');
-                                        @endphp
-                                        <tr data-cari="{{ \Illuminate\Support\Str::lower($cari) }}"
+                                        @php $p = $baris['paket']; @endphp
+                                        <tr data-cari="{{ \Illuminate\Support\Str::lower($p->nmpaket) }}"
                                             data-href="{{ route('cctv.index', ['paket' => $p->kdpaket]) }}" class="baris-paket" style="cursor: pointer;">
                                             <td class="text-center nomor"></td>
                                             <td>
