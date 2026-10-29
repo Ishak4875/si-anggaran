@@ -114,10 +114,29 @@
                 <button type="button" id="btnStop" class="btn btn-outline-secondary btn-sm d-none">
                     <i class="bi bi-stop-fill"></i> Hentikan
                 </button>
+                <button type="button" id="btnLayarPenuh" class="btn btn-outline-secondary btn-sm" title="Layar penuh">
+                    <i class="bi bi-arrows-fullscreen"></i>
+                </button>
             </div>
-            <div class="card-body p-0 bg-black">
+            {{-- Watermark ditumpuk di atas video (bukan dibakar ke siaran). Layar penuh bawaan <video>
+                 menyembunyikan tumpukan ini, jadi layar penuh memakai pembungkusnya (#areaVideo). --}}
+            <style>
+                #areaVideo:fullscreen { display: flex; align-items: center; }
+                #areaVideo:fullscreen video { max-height: 100vh !important; height: 100%; }
+                .cctv-watermark {
+                    /* kiri bawah; naik saat bar kontrol video tampil (dijeda / kursor di atas video) agar tidak menimpanya */
+                    position: absolute; bottom: .75rem; left: .75rem; z-index: 2;
+                    color: #fff; opacity: .7; font-weight: 600; letter-spacing: .02em;
+                    font-size: clamp(.7rem, 1.25vw, .9rem); text-shadow: 0 1px 3px rgba(0, 0, 0, .9);
+                    pointer-events: none; user-select: none; transition: bottom .2s;
+                }
+                #areaVideo.video-jeda .cctv-watermark,
+                #areaVideo:hover .cctv-watermark { bottom: 4.25rem; }
+            </style>
+            <div class="card-body p-0 bg-black position-relative video-jeda" id="areaVideo">
                 <video id="cctvVideo" class="w-100 d-block" style="max-height: 75vh; aspect-ratio: 16 / 9;"
-                       muted playsinline controls></video>
+                       muted playsinline controls controlslist="nofullscreen" disablepictureinpicture></video>
+                <div class="cctv-watermark">Created By Ishak - KPISDA</div>
             </div>
             <div class="card-footer small text-secondary">
                 <div class="mb-1">
@@ -347,6 +366,26 @@
 
     btnPutar.addEventListener('click', () => { ulang = 0; putar(); });
     btnStop.addEventListener('click', () => hentikan());
+
+    // Layar penuh pada pembungkus agar watermark tetap tampil. iPhone Safari tidak mendukung
+    // layar penuh untuk elemen selain <video>, jadi di sana watermark tidak ikut tampil.
+    const areaVideo = document.getElementById('areaVideo');
+    const layarPenuh = () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else if (areaVideo.requestFullscreen) {
+            areaVideo.requestFullscreen().catch(() => {});
+        } else if (video.webkitEnterFullscreen) {
+            video.webkitEnterFullscreen();
+        }
+    };
+    document.getElementById('btnLayarPenuh').addEventListener('click', layarPenuh);
+    video.addEventListener('dblclick', (ev) => { ev.preventDefault(); layarPenuh(); });
+
+    // Saat video tidak berjalan, bar kontrol selalu tampil: watermark dinaikkan di atasnya
+    const tandaiJeda = () => areaVideo.classList.toggle('video-jeda', video.paused);
+    ['play', 'playing', 'pause', 'emptied', 'ended'].forEach(e => video.addEventListener(e, tandaiJeda));
+
     video.addEventListener('playing', () => {
         clearTimeout(pengawas);
         ulang = 0;
