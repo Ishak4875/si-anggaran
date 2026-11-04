@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('agenda-kpisda', fn (User $user) => $user->canSeeAgendaKpisda());
         Gate::define('agenda-kabalai', fn (User $user) => $user->canSeeAgendaKabalai());
         Gate::define('kelola-cctv', fn (User $user) => $user->canManageCctv());
+        Gate::define('kelola-cctv-pekerjaan', fn (User $user) => $user->canManageCctvPekerjaan());
 
         // Sediakan daftar satker (+ jumlah paket) untuk menu sidebar.
         View::composer('layout.v_sidebar', function ($view) {

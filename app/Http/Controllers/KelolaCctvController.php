@@ -14,7 +14,7 @@ use RuntimeException;
 
 /**
  * Kelola CCTV: pasang kamera Tuya ke paket (satu paket bisa banyak kamera),
- * pindahkan ke paket lain, atau hapus. Akses: Super Admin (gate kelola-cctv).
+ * pindahkan ke paket lain, atau hapus. Akses: Super Admin & KPISDA (gate kelola-cctv).
  */
 class KelolaCctvController extends Controller
 {

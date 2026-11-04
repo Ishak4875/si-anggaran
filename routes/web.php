@@ -67,7 +67,9 @@ Route::middleware(['auth', BlockCctvOnly::class])->group(function () {
         Route::post('/kelola-cctv', [KelolaCctvController::class, 'store'])->name('kelola-cctv.store');
         Route::put('/kelola-cctv/{cctv}', [KelolaCctvController::class, 'update'])->name('kelola-cctv.update');
         Route::delete('/kelola-cctv/{cctv}', [KelolaCctvController::class, 'destroy'])->name('kelola-cctv.destroy');
+    });
 
+    Route::middleware('can:kelola-cctv-pekerjaan')->group(function () {
         Route::get('/kelola-cctv-pekerjaan', [KelolaCctvPekerjaanController::class, 'index'])->name('kelola-cctv-pekerjaan.index');
         Route::post('/kelola-cctv-pekerjaan', [KelolaCctvPekerjaanController::class, 'store'])->name('kelola-cctv-pekerjaan.store');
         Route::put('/kelola-cctv-pekerjaan/{cctv}', [KelolaCctvPekerjaanController::class, 'update'])->name('kelola-cctv-pekerjaan.update');
