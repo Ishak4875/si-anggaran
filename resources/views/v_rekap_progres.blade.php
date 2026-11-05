@@ -105,7 +105,7 @@
                         Status : {{ $statusJam['tanggal'] }} ; {{ $statusJam['jam'] }} WIB
                         {{-- Watermark; berada di dalam area capture agar ikut di gambar "Unduh Gambar" --}}
                         <span class="position-absolute bottom-0 end-0 me-2 mb-1 fw-normal fst-italic"
-                              style="font-size: 9pt; color: #9a948a;">Created by Ishak; KPISDA</span>
+                              style="font-size: 11pt; color: #9a948a;">Created by Ishak; KPISDA</span>
                     </div>
                 </div>
             </div>
