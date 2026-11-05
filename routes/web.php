@@ -14,6 +14,7 @@ use App\Http\Controllers\PekerjaanRumahController;
 use App\Http\Controllers\PelaporanKekeringanController;
 use App\Http\Controllers\PekerjaanRumahKepalaBalaiController;
 use App\Http\Controllers\PpkController;
+use App\Http\Controllers\RekapProgresController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\BlockCctvOnly;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +57,7 @@ Route::middleware(['auth', BlockCctvOnly::class])->group(function () {
 
     Route::get('/packets-reguler', [PacketsRegularController::class, 'index'])->name('packets-reguler.index');
     Route::get('/packets-inpres', [PacketsInpresController::class, 'index'])->name('packets-inpres.index');
+    Route::get('/rekap-progres', [RekapProgresController::class, 'index'])->name('rekap-progres.index');
 
     // Monitoring Pelaporan Kekeringan (Super Admin; dicek di controller)
     Route::get('/pelaporan-kekeringan', [PelaporanKekeringanController::class, 'index'])->name('pelaporan-kekeringan.index');

@@ -38,6 +38,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="{{ route('rekap-progres.index') }}"
+                       class="nav-link {{ request()->routeIs('rekap-progres.*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-bar-chart-line"></i>
+                        <p>Rekap Progres</p>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="{{ route('pelaporan-kekeringan.index') }}"
                        class="nav-link {{ request()->routeIs('pelaporan-kekeringan.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-droplet-half"></i>

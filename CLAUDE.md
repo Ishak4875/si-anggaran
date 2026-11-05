@@ -98,6 +98,12 @@ The dashboard also shows a static, non-dismissible reminder banner at the very t
 
 **Daftar Paket Inpres** (`/packets-inpres`, `PacketsInpresController`, `v_packets_inpres.blade.php`, admin-only like Daftar Paket Reguler — requested for Bayu's admin account) lists the Inpres packages per satker (OP and PJPA) straight from the API-synced `packets` table; no master table. SIHKA has no "Inpres" flag, so packages are recognised by **kdpaket prefix** in `config/inpres.php` (`prefixes` keyed by satker slug): OP `03.694136.FC.7695.CDR.008.`, PJPA `03.694244.FC.7691.RBS.005.` and `03.694244.FC.7694.RBS.006.` (23 + 23 packages, all new in the Oct 2026 API data and still without PPK at the time). Add a prefix there if a new Inpres RO appears. Columns: kode, nama, PPK jabatan (or "Belum ditetapkan"), pagu, realisasi, Keu %, Fis %, with a per-satker total row using the standard Keu/Fis conventions; header shows the "belum ada PPK" count and a "Tetapkan PPK" link to `/satker/{slug}`. Same client-side search as Paket Reguler, plus a **PPK filter** dropdown (`#filterPpk`, options grouped per satker from the PPKs that actually have Inpres packages, plus "Belum ditetapkan" while any package lacks a PPK; matches `data-ppk` = jabatan or `-`). Search and PPK combine with AND; satker sections with no match are hidden and the total row is recomputed client-side from the visible rows (`data-pagu`/`data-real`/`data-fis`, same Keu/Fis conventions) with an "(N paket tersaring)" note.
 
+## Rekap Progres
+
+**Rekap Progres** (`/rekap-progres`, `RekapProgresController`, `v_rekap_progres.blade.php`, Super Admin only, checked in the controller like Daftar Paket Inpres; menu under Daftar Paket Inpres) compares two kinds of package from the API-synced `packets` table: a summary (Reguler, Inpres, Total), then one satker → PPK table per kind (jumlah paket, pagu, realisasi in full rupiah, Keu %, Fis %, standard conventions). Satkers with no package of that kind are left out.
+
+**"Paket Reguler" here means every package that is not Inpres (561 of 607 packages in Nov 2026), not the 30-row `packets_reguler` master table behind Daftar Paket Reguler.** Scopes `Packet::inpres()` and `Packet::reguler()` read the same `config/inpres.php` prefixes as Daftar Paket Inpres, so adding a prefix moves those packages automatically. The two scopes never overlap and together cover all packets, so the Total row matches the dashboard's total.
+
 ## Monitoring Pelaporan Kekeringan
 
 `/pelaporan-kekeringan` (`PelaporanKekeringanController`, `v_pelaporan_kekeringan.blade.php`, Super Admin only — requested for Bayu's account; menu under Daftar Paket Inpres). Recreates the user's "List Pelaporan" sheet: TRC 1–3 with 13 Wakil Kordinator Wilayah. **Names, jabatan and TRC grouping are static** in `config/kekeringan.php`; each person has a stable `kode` (`D.1.a` …) that keys the stored status — don't renumber existing codes or their status is orphaned.
@@ -345,7 +351,7 @@ A full black-box pass (100 cases, all Valid after fixing Kelola Akun) was run on
 - All dashboard/data routes require `middleware('auth')`; unauthenticated access redirects to `/login` (configured in `bootstrap/app.php`).
 
 **User roles** (`users.role` enum: `user`, `admin`, `kpisda`, `kabalai`, `cctv`, `ppk`; display labels in `User::ROLES`, which also drives the Kelola Akun `<select>`s and the `in:` validation — add a role there, not in each view):
-- `'admin'` (label "Super Admin") = can access "Kelola Akun" and "Daftar Paket Reguler", manage all accounts, and sees **both** agenda dropdowns.
+- `'admin'` (label "Super Admin") = can access "Kelola Akun", "Daftar Paket Reguler" and "Rekap Progres", manage all accounts, and sees **both** agenda dropdowns.
 - `'kpisda'` = sees Agenda KPISDA (not Kepala Balai) and Kelola CCTV.
 - `'kabalai'` (label "Kepala Balai") = sees Agenda Kepala Balai only.
 - `'user'` = dashboard and data-management pages, **no** agenda menus.
