@@ -100,9 +100,14 @@ The dashboard also shows a static, non-dismissible reminder banner at the very t
 
 ## Rekap Progres
 
-**Rekap Progres** (`/rekap-progres`, `RekapProgresController`, `v_rekap_progres.blade.php`, Super Admin only, checked in the controller like Daftar Paket Inpres; menu under Daftar Paket Inpres) compares two kinds of package from the API-synced `packets` table: a summary (Reguler, Inpres, Total), then one satker → PPK table per kind (jumlah paket, pagu, realisasi in full rupiah, Keu %, Fis %, standard conventions). Satkers with no package of that kind are left out.
+**Rekap Progres** (`/rekap-progres`, `RekapProgresController`, `v_rekap_progres.blade.php`, Super Admin only, checked in the controller like Daftar Paket Inpres; menu under Daftar Paket Inpres) shows two tables from the API-synced `packets` table, one per kind of package, in the format of the dashboard's "Progres per PPK & Peringkat" (Ditjen SDA row, BWS total with a Reguler/Inpres badge, satker → PPK, Rp.000, red below Ditjen, Status line, watermark). Each has its own **Unduh Gambar** button (`progres-paket-reguler.png`, `progres-paket-inpres.png`), including on phones. Satkers with no package of that kind are left out.
 
-**"Paket Reguler" here means every package that is not Inpres (561 of 607 packages in Nov 2026), not the 30-row `packets_reguler` master table behind Daftar Paket Reguler.** Scopes `Packet::inpres()` and `Packet::reguler()` read the same `config/inpres.php` prefixes as Daftar Paket Inpres, so adding a prefix moves those packages automatically. The two scopes never overlap and together cover all packets, so the Total row matches the dashboard's total.
+- **Rank is per kind of package**, so it differs from the dashboard. Equal Keu % shares a rank here (many Inpres packages are at 0%); the dashboard numbers ties sequentially.
+- Ditjen SDA is edited only from the dashboard, so this page has no pencil icon.
+- `App\Support\StatusLaporan::dariSync()` holds the Status checkpoint logic, shared with the dashboard.
+- The header is a single row with no rowspan, so the capture doesn't need the dashboard's `onclone` header rewrite.
+
+**"Paket Reguler" here means every package that is not Inpres (561 of 607 packages in Nov 2026), not the 30-row `packets_reguler` master table behind Daftar Paket Reguler.** Scopes `Packet::inpres()` and `Packet::reguler()` read the same `config/inpres.php` prefixes as Daftar Paket Inpres, so adding a prefix moves those packages automatically. The two scopes never overlap and together cover all packets, so the two BWS rows add up to the dashboard's BWS row.
 
 ## Monitoring Pelaporan Kekeringan
 
