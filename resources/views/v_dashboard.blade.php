@@ -333,7 +333,7 @@
                     <div class="text-center fw-bold border-top py-2 bg-white position-relative">
                         Status : {{ $statusJam['tanggal'] }} ; {{ $statusJam['jam'] }} WIB
                         {{-- Watermark; berada di dalam area capture agar ikut di gambar "Unduh Gambar" --}}
-                        <span class="position-absolute bottom-0 end-0 me-2 mb-1 fw-normal fst-italic"
+                        <span class="position-absolute bottom-0 start-0 ms-2 mb-1 fw-normal fst-italic"
                               style="font-size: 11pt; color: #9a948a;">Created by Ishak; KPISDA</span>
                     </div>
                 </div>
