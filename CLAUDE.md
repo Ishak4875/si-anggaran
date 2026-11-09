@@ -100,7 +100,7 @@ The dashboard also shows a static, non-dismissible reminder banner at the very t
 
 ## Rekap Progres
 
-**Rekap Progres** (`/rekap-progres`, `RekapProgresController`, `v_rekap_progres.blade.php`, Super Admin only, checked in the controller like Daftar Paket Inpres; menu under Daftar Paket Inpres) shows two tables from the API-synced `packets` table, one per kind of package, in the format of the dashboard's "Progres per PPK & Peringkat" (Ditjen SDA row, BWS total with a Reguler/Inpres badge, satker → PPK, Rp.000, red below Ditjen, Status line, watermark). Each has its own **Unduh Gambar** button (`progres-paket-reguler.png`, `progres-paket-inpres.png`), including on phones. Satkers with no package of that kind are left out.
+**Rekap Progres** (`/rekap-progres`, `RekapProgresController`, `v_rekap_progres.blade.php`, **Super Admin and KPISDA** (`User::canSeeRekapProgres()`, KPISDA added 2026-11-09 at the user's request), checked in the controller and in the sidebar; menu under Daftar Paket Inpres, which KPISDA does not see) shows two tables from the API-synced `packets` table, one per kind of package, in the format of the dashboard's "Progres per PPK & Peringkat" (Ditjen SDA row, BWS total with a Reguler/Inpres badge, satker → PPK, Rp.000, red below Ditjen, Status line, watermark). Each has its own **Unduh Gambar** button (`progres-paket-reguler.png`, `progres-paket-inpres.png`), including on phones. Satkers with no package of that kind are left out.
 
 - **Rank is per kind of package**, so it differs from the dashboard. Equal Keu % shares a rank here (many Inpres packages are at 0%); the dashboard numbers ties sequentially.
 - Ditjen SDA is edited only from the dashboard, so this page has no pencil icon.
@@ -357,13 +357,13 @@ A full black-box pass (100 cases, all Valid after fixing Kelola Akun) was run on
 
 **User roles** (`users.role` enum: `user`, `admin`, `kpisda`, `kabalai`, `cctv`, `ppk`; display labels in `User::ROLES`, which also drives the Kelola Akun `<select>`s and the `in:` validation — add a role there, not in each view):
 - `'admin'` (label "Super Admin") = can access "Kelola Akun", "Daftar Paket Reguler" and "Rekap Progres", manage all accounts, and sees **both** agenda dropdowns.
-- `'kpisda'` = sees Agenda KPISDA (not Kepala Balai) and Kelola CCTV.
+- `'kpisda'` = sees Agenda KPISDA (not Kepala Balai), Kelola CCTV and Rekap Progres.
 - `'kabalai'` (label "Kepala Balai") = sees Agenda Kepala Balai only.
 - `'user'` = dashboard and data-management pages, **no** agenda menus.
 - `'cctv'` (label "CCTV (hanya lihat CCTV)") = **only** the Daftar Paket CCTV page and the CCTV player it opens, all cameras. `App\Http\Middleware\BlockCctvOnly` wraps every other auth route: GETs redirect to `/cctv/paket` (so login lands there), other methods 403. The sidebar hides everything else via `@unless (Auth::user()->isCctvOnly())`. Added by migration `..._add_cctv_role_to_users_table`.
 - `'ppk'` (label "PPK (CCTV paket sendiri)") = like `cctv` (`isCctvOnly()` covers both) but sees only the cameras of its own PPK's packets. Linked via `users.ppk_id` (FK → `ppks`, `nullOnDelete`; migration `..._add_ppk_role_to_users_table`). Kelola Akun shows a required PPK select only when role = PPK (`UserController::ppkRules()`, `ppk_id` forced to null for other roles). PPK accounts are created by the admin in Kelola Akun as needed; the first one (PPK Sungai dan Pantai 2) exists in the local DB since 2026-10-28.
 - Kelola CCTV is for `admin` and `kpisda` (gate `kelola-cctv`); Kelola CCTV Pekerjaan is `admin`-only (gate `kelola-cctv-pekerjaan`).
-- Only `admin` counts as admin (`User::isAdmin()`); `kpisda`/`kabalai` behave like `user` everywhere except the agenda menus and, for `kpisda`, Kelola CCTV.
+- Only `admin` counts as admin (`User::isAdmin()`); `kpisda`/`kabalai` behave like `user` everywhere except the agenda menus and, for `kpisda`, Kelola CCTV and Rekap Progres.
 - Menu "Kelola Akun" is hidden in sidebar for non-admin users; direct access to `/users*` routes returns 403 Forbidden (checked in `UserController` via private `authorize()` method).
 - History: agenda access briefly used a `users.agenda_group` column (migration `..._add_agenda_group_to_users_table`, which also hard-coded `kabalai@gmail.com`). Migration `..._replace_agenda_group_with_roles` replaced it: it widens the role enum, maps non-admin accounts from their old group to the matching role (so nobody lost access), then drops the column. Both migrations must stay in order — hosting runs them back to back.
 

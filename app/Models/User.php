@@ -90,6 +90,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Rekap Progres (Paket Reguler & Inpres): Super Admin dan KPISDA.
+     */
+    public function canSeeRekapProgres(): bool
+    {
+        return in_array($this->role, ['admin', 'kpisda'], true);
+    }
+
+    /**
      * Kelola CCTV Pekerjaan (pemetaan kamera per PPK): Super Admin saja.
      */
     public function canManageCctvPekerjaan(): bool

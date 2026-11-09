@@ -37,6 +37,10 @@
                         <p>Daftar Paket Inpres</p>
                     </a>
                 </li>
+            @endif
+
+            {{-- Rekap Progres (Super Admin & KPISDA) --}}
+            @if (Auth::user()->canSeeRekapProgres())
                 <li class="nav-item">
                     <a href="{{ route('rekap-progres.index') }}"
                        class="nav-link {{ request()->routeIs('rekap-progres.*') ? 'active' : '' }}">
@@ -44,6 +48,10 @@
                         <p>Rekap Progres</p>
                     </a>
                 </li>
+            @endif
+
+            {{-- Monitoring Pelaporan Kekeringan (Super Admin Only) --}}
+            @if (Auth::user()->isAdmin())
                 <li class="nav-item">
                     <a href="{{ route('pelaporan-kekeringan.index') }}"
                        class="nav-link {{ request()->routeIs('pelaporan-kekeringan.*') ? 'active' : '' }}">

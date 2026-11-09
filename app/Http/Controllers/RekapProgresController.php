@@ -12,7 +12,8 @@ class RekapProgresController extends Controller
 {
     private function authorize()
     {
-        if (! auth()->user()?->isAdmin()) {
+        // Super Admin dan KPISDA.
+        if (! auth()->user()?->canSeeRekapProgres()) {
             abort(403, 'Akses ditolak.');
         }
     }
