@@ -59,7 +59,11 @@
                             {{-- Total jenis paket ini; badge membedakan gambar Reguler dan Inpres --}}
                             <tr class="table-secondary fw-bold">
                                 <td>–</td>
-                                <td>BWS Sulawesi IV Kendari <span class="badge text-bg-secondary">{{ $j['label'] }}</span></td>
+                                <td>
+                                    BWS Sulawesi IV Kendari
+                                    <span class="badge {{ $kode === 'inpres' ? 'text-bg-warning' : 'text-bg-primary' }} text-uppercase ms-1"
+                                          style="font-size: 1em; letter-spacing: .05em; padding: .35em .7em;">{{ $j['label'] }}</span>
+                                </td>
                                 <td>{{ $rb($j['total']['pagu']) }}</td>
                                 <td>{{ $rb($j['total']['realisasi']) }}</td>
                                 <td class="{{ $cellCls($j['total']['keu'], $ditjen['keu']) }}">{{ $pct($j['total']['keu']) }}</td>
