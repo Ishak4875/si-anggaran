@@ -70,6 +70,20 @@ class PpkController extends Controller
      */
     public function destroy(Ppk $ppk): RedirectResponse
     {
+        // packets.ppk_id memakai nullOnDelete: menghapus PPK yang masih punya paket
+        // akan mengosongkan PPK seluruh paketnya (dan sinkron berikutnya membawa
+        // kekosongan itu terus). Karena itu penghapusan ditolak selama masih ada paket.
+        $jumlahPaket = $ppk->packets()->count();
+        if ($jumlahPaket > 0) {
+            return redirect()
+                ->route('ppk.index')
+                ->withErrors([
+                    'hapus' => "{$ppk->jabatan} tidak bisa dihapus karena masih ditetapkan pada {$jumlahPaket} paket. "
+                        . 'Pindahkan paket-paket itu ke PPK lain di halaman Paket per Satker terlebih dahulu, '
+                        . 'atau ubah data PPK ini lewat tombol Perbarui bila hanya nama/jabatannya yang berganti.',
+                ]);
+        }
+
         $ppk->delete();
 
         return redirect()
